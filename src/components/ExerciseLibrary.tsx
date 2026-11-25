@@ -116,26 +116,26 @@ export function ExerciseLibrary({
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+          <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
             Bibliothèque d&apos;exercices
           </h1>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-            Exercices classés en 2 catégories : Street Workout et Running.
+            Exercices organisés en 2 disciplines : Street Workout et Running.
           </p>
         </div>
 
         <button
           type="button"
           onClick={openNewForm}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-500 px-4 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/20 transition hover:bg-cyan-400"
+          className="btn-primary px-4 py-3 text-sm"
         >
-          <Plus className="h-5 w-5" />
+          <Plus className="h-4 w-4 stroke-[2.5]" />
           Ajouter un exercice
         </button>
       </div>
 
-      {/* Discipline filter tabs */}
-      <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 dark:border-slate-800 dark:bg-slate-900">
+      {/* Discipline filter */}
+      <div className="inline-flex rounded-2xl border border-slate-200/90 bg-white p-1 dark:border-white/[0.08] dark:bg-[#0d121c]">
         {(['all', 'street_workout', 'running'] as const).map((disc) => (
           <button
             key={disc}
@@ -144,9 +144,9 @@ export function ExerciseLibrary({
               setDisciplineFilter(disc);
               setCategoryFilter('all');
             }}
-            className={`inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold transition ${
+            className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
               disciplineFilter === disc
-                ? 'bg-cyan-500 text-slate-950'
+                ? 'bg-gradient-to-r from-cyan-400 to-emerald-400 text-slate-950 shadow-sm'
                 : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
             }`}
           >
@@ -162,34 +162,34 @@ export function ExerciseLibrary({
       {isFormOpen && (
         <form
           onSubmit={handleSubmit}
-          className="rounded-2xl border border-cyan-500/40 bg-white p-5 shadow-md dark:bg-slate-900"
+          className="surface-card border-cyan-500/35 p-5 sm:p-6 animate-view-in"
         >
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">
+            <h2 className="font-display text-lg font-bold">
               {editing ? 'Modifier l’exercice' : 'Nouvel exercice'}
             </h2>
             <button
               type="button"
               onClick={() => setIsFormOpen(false)}
-              className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+              className="btn-secondary p-2"
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4" />
             </button>
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              <label className="mb-1.5 block text-xs font-semibold text-slate-500">
                 Catégorie principale
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => handleDisciplineChange('street_workout')}
-                  className={`inline-flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-semibold transition ${
+                  className={`inline-flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-bold transition ${
                     discipline === 'street_workout'
-                      ? 'border-cyan-500 bg-cyan-500/15 text-cyan-700 dark:text-cyan-300'
-                      : 'border-slate-200 dark:border-slate-700'
+                      ? 'border-cyan-400 bg-cyan-500/15 text-cyan-700 dark:text-cyan-300'
+                      : 'border-slate-200 dark:border-white/10'
                   }`}
                 >
                   <Dumbbell className="h-4 w-4" />
@@ -198,10 +198,10 @@ export function ExerciseLibrary({
                 <button
                   type="button"
                   onClick={() => handleDisciplineChange('running')}
-                  className={`inline-flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-semibold transition ${
+                  className={`inline-flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-bold transition ${
                     discipline === 'running'
-                      ? 'border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                      : 'border-slate-200 dark:border-slate-700'
+                      ? 'border-emerald-400 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
+                      : 'border-slate-200 dark:border-white/10'
                   }`}
                 >
                   <Footprints className="h-4 w-4" />
@@ -211,7 +211,7 @@ export function ExerciseLibrary({
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              <label className="mb-1.5 block text-xs font-semibold text-slate-500">
                 Nom
               </label>
               <input
@@ -224,18 +224,18 @@ export function ExerciseLibrary({
                     ? 'Ex : Sortie longue, VMA 400m...'
                     : 'Ex : Tractions lestées, Front Lever...'
                 }
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm outline-none focus:border-cyan-500 dark:border-slate-700 dark:bg-slate-950"
+                className="input-field font-semibold"
               />
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              <label className="mb-1.5 block text-xs font-semibold text-slate-500">
                 Sous-catégorie
               </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value as ExerciseCategory)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm outline-none focus:border-cyan-500 dark:border-slate-700 dark:bg-slate-950"
+                className="input-field"
               >
                 {availableFormCategories.map((cat) => (
                   <option key={cat} value={cat}>
@@ -247,17 +247,17 @@ export function ExerciseLibrary({
 
             {discipline === 'street_workout' && (
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-slate-500 dark:text-slate-400">
+                <label className="mb-1.5 block text-xs font-semibold text-slate-500">
                   Unité par défaut
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setUnit('reps')}
-                    className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition ${
+                    className={`rounded-xl border px-3 py-2.5 text-sm font-bold transition ${
                       unit === 'reps'
-                        ? 'border-cyan-500 bg-cyan-500/15 text-cyan-700 dark:text-cyan-300'
-                        : 'border-slate-200 dark:border-slate-700'
+                        ? 'border-cyan-400 bg-cyan-500/15 text-cyan-700 dark:text-cyan-300'
+                        : 'border-slate-200 dark:border-white/10'
                     }`}
                   >
                     Répétitions
@@ -265,10 +265,10 @@ export function ExerciseLibrary({
                   <button
                     type="button"
                     onClick={() => setUnit('seconds')}
-                    className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition ${
+                    className={`rounded-xl border px-3 py-2.5 text-sm font-bold transition ${
                       unit === 'seconds'
-                        ? 'border-cyan-500 bg-cyan-500/15 text-cyan-700 dark:text-cyan-300'
-                        : 'border-slate-200 dark:border-slate-700'
+                        ? 'border-cyan-400 bg-cyan-500/15 text-cyan-700 dark:text-cyan-300'
+                        : 'border-slate-200 dark:border-white/10'
                     }`}
                   >
                     Secondes (statique)
@@ -278,7 +278,7 @@ export function ExerciseLibrary({
             )}
 
             <div className="sm:col-span-2">
-              <label className="mb-1.5 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              <label className="mb-1.5 block text-xs font-semibold text-slate-500">
                 Consignes techniques (optionnel)
               </label>
               <input
@@ -286,23 +286,20 @@ export function ExerciseLibrary({
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Ex : Allure zone 2, épaules abaissées..."
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm outline-none focus:border-cyan-500 dark:border-slate-700 dark:bg-slate-950"
+                className="input-field"
               />
             </div>
           </div>
 
-          <div className="mt-4 flex justify-end gap-2">
+          <div className="mt-5 flex justify-end gap-2">
             <button
               type="button"
               onClick={() => setIsFormOpen(false)}
-              className="rounded-xl px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="btn-secondary px-4 py-2 text-sm"
             >
               Annuler
             </button>
-            <button
-              type="submit"
-              className="rounded-xl bg-cyan-500 px-5 py-2 text-sm font-semibold text-slate-950 hover:bg-cyan-400"
-            >
+            <button type="submit" className="btn-primary px-5 py-2 text-sm">
               Enregistrer
             </button>
           </div>
@@ -317,18 +314,18 @@ export function ExerciseLibrary({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Filtrer les exercices..."
-            className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pr-4 pl-10 text-sm outline-none focus:border-cyan-500 dark:border-slate-800 dark:bg-slate-900"
+            className="input-field pl-10"
           />
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5">
           <button
             type="button"
             onClick={() => setCategoryFilter('all')}
-            className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
+            className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${
               categoryFilter === 'all'
-                ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950'
-                : 'bg-slate-200/70 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300'
+                ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950'
+                : 'bg-slate-200/70 text-slate-700 hover:bg-slate-200 dark:bg-white/[0.06] dark:text-slate-300'
             }`}
           >
             Toutes
@@ -338,10 +335,10 @@ export function ExerciseLibrary({
               key={cat}
               type="button"
               onClick={() => setCategoryFilter(cat)}
-              className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
+              className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${
                 categoryFilter === cat
-                  ? 'bg-cyan-500 text-slate-950'
-                  : 'bg-slate-200/70 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300'
+                  ? 'bg-cyan-400 text-slate-950'
+                  : 'bg-slate-200/70 text-slate-700 hover:bg-slate-200 dark:bg-white/[0.06] dark:text-slate-300'
               }`}
             >
               {CATEGORY_META[cat].label}
@@ -350,7 +347,7 @@ export function ExerciseLibrary({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2 xl:grid-cols-3">
         {filtered.map((ex) => {
           const catMeta = CATEGORY_META[ex.category];
           const discMeta = DISCIPLINE_META[ex.discipline];
@@ -359,21 +356,21 @@ export function ExerciseLibrary({
           return (
             <div
               key={ex.id}
-              className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900/90"
+              className="surface-card surface-card-hover flex flex-col justify-between p-4"
             >
               <div>
                 <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-semibold text-slate-900 dark:text-slate-100">
+                  <h3 className="font-display font-bold text-slate-900 dark:text-slate-100">
                     {ex.name}
                   </h3>
                   <div className="flex shrink-0 flex-wrap justify-end gap-1">
                     <span
-                      className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${discMeta.badgeClass}`}
+                      className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${discMeta.badgeClass}`}
                     >
                       {discMeta.shortLabel}
                     </span>
                     <span
-                      className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${catMeta.badgeClass}`}
+                      className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${catMeta.badgeClass}`}
                     >
                       {catMeta.label}
                     </span>
@@ -385,21 +382,23 @@ export function ExerciseLibrary({
                     : `Mesure : ${ex.unit === 'seconds' ? 'Temps de maintien (sec)' : 'Répétitions'}`}
                 </p>
                 {ex.notes && (
-                  <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
+                  <p className="mt-2 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
                     {ex.notes}
                   </p>
                 )}
               </div>
 
-              <div className="mt-4 flex items-center justify-end gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
+              <div className="mt-4 flex items-center justify-end gap-2 border-t border-slate-100 pt-3 dark:border-white/[0.06]">
                 {isDeleting ? (
                   <div className="flex w-full items-center justify-between text-xs">
-                    <span className="text-rose-500">Retirer aussi des séances ?</span>
+                    <span className="font-semibold text-rose-500">
+                      Retirer aussi des séances ?
+                    </span>
                     <div className="flex gap-1.5">
                       <button
                         type="button"
                         onClick={() => setConfirmDeleteId(null)}
-                        className="rounded-lg px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+                        className="rounded-lg px-2.5 py-1 font-semibold hover:bg-slate-100 dark:hover:bg-white/10"
                       >
                         Non
                       </button>
@@ -409,7 +408,7 @@ export function ExerciseLibrary({
                           onDeleteExercise(ex.id);
                           setConfirmDeleteId(null);
                         }}
-                        className="rounded-lg bg-rose-600 px-2.5 py-1 font-semibold text-white"
+                        className="rounded-lg bg-rose-600 px-2.5 py-1 font-bold text-white"
                       >
                         Oui
                       </button>
@@ -420,7 +419,7 @@ export function ExerciseLibrary({
                     <button
                       type="button"
                       onClick={() => openEditForm(ex)}
-                      className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                      className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/[0.06]"
                     >
                       <Pencil className="h-3.5 w-3.5" />
                       Modifier
@@ -428,7 +427,7 @@ export function ExerciseLibrary({
                     <button
                       type="button"
                       onClick={() => setConfirmDeleteId(ex.id)}
-                      className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-500 hover:bg-rose-500/10 hover:text-rose-500"
+                      className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-500 hover:bg-rose-500/10 hover:text-rose-500"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                       Supprimer

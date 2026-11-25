@@ -82,7 +82,7 @@ export function useAppStore() {
     if (metaTheme) {
       metaTheme.setAttribute(
         'content',
-        data.settings.theme === 'dark' ? '#020617' : '#f8fafc'
+        data.settings.theme === 'dark' ? '#070a0f' : '#f4f6fa'
       );
     }
   }, [data.settings.theme]);

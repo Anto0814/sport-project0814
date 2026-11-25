@@ -2,13 +2,14 @@ import { useState } from 'react';
 import {
   CalendarDays,
   Dumbbell,
+  FileUp,
   Flame,
   History,
-  ListChecks,
   Moon,
   Plus,
   Settings,
   Sun,
+  Zap,
 } from 'lucide-react';
 import { CalendarView } from './components/CalendarView';
 import { ExerciseLibrary } from './components/ExerciseLibrary';
@@ -31,7 +32,7 @@ const NAV_ITEMS: {
   { id: 'workouts', label: 'Mes séances', shortLabel: 'Séances', icon: Flame },
   { id: 'calendar', label: 'Calendrier', shortLabel: 'Agenda', icon: CalendarDays },
   { id: 'exercises', label: 'Exercices', shortLabel: 'Exos', icon: Dumbbell },
-  { id: 'history', label: 'Historique', shortLabel: 'Historique', icon: History },
+  { id: 'history', label: 'Historique', shortLabel: 'Suivi', icon: History },
   { id: 'settings', label: 'Réglages', shortLabel: 'Réglages', icon: Settings },
 ];
 
@@ -78,10 +79,12 @@ export function App() {
     });
   };
 
+  const activeProgramsCount = data.programs.filter((p) => p.isActive).length;
+
   // Full-screen distraction-free workout player (Street Workout or Running)
   if (activeWorkout) {
     return (
-      <div className="min-h-screen bg-slate-50 px-4 py-4 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+      <div className="min-h-screen px-4 py-4">
         {activeWorkout.discipline === 'running' ? (
           <RunningPlayer
             workout={activeWorkout}
@@ -102,32 +105,47 @@ export function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+    <div className="min-h-screen">
       {/* Desktop Sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col justify-between border-r border-slate-200 bg-white p-5 md:flex dark:border-slate-800/80 dark:bg-slate-900/95">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[268px] flex-col justify-between border-r border-slate-200/80 bg-white/85 p-5 backdrop-blur-xl md:flex dark:border-white/[0.06] dark:bg-[#0a0f18]/85">
         <div className="space-y-6">
+          {/* Brand */}
           <div className="flex items-center gap-3 px-1">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400 to-emerald-500 text-slate-950 shadow-md shadow-cyan-500/20">
-              <ListChecks className="h-5 w-5 stroke-[2.5]" />
+            <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 via-teal-400 to-emerald-400 text-slate-950 shadow-lg shadow-cyan-500/25">
+              <Zap className="h-5 w-5 fill-current stroke-[2.2]" />
             </div>
             <div>
-              <div className="text-lg font-extrabold tracking-tight">StreetFlow</div>
+              <div className="font-display text-xl font-bold tracking-tight">
+                StreetFlow
+              </div>
               <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
                 Street Workout &amp; Running
               </div>
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={openCreateWorkout}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-500 px-4 py-2.5 text-sm font-semibold text-slate-950 shadow-md shadow-cyan-500/15 transition hover:bg-cyan-400"
-          >
-            <Plus className="h-4 w-4" />
-            Nouvelle séance
-          </button>
+          {/* Primary Actions */}
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={openCreateWorkout}
+              className="btn-primary w-full px-4 py-2.5 text-sm"
+            >
+              <Plus className="h-4 w-4 stroke-[2.5]" />
+              Nouvelle séance
+            </button>
+            <button
+              type="button"
+              onClick={() => setImportRunOpen(true)}
+              className="btn-secondary w-full px-3.5 py-2 text-xs"
+            >
+              <FileUp className="h-3.5 w-3.5 text-emerald-500" />
+              Importer Strava GPX / FIT
+            </button>
+          </div>
 
-          <nav className="space-y-1.5">
+          {/* Nav */}
+          <nav className="space-y-1">
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
               const isActive =
@@ -137,24 +155,44 @@ export function App() {
                   key={item.id}
                   type="button"
                   onClick={() => setView(item.id)}
-                  className={`flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-semibold transition ${
+                  className={`group relative flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all duration-150 ${
                     isActive
-                      ? 'bg-slate-900 text-white dark:bg-cyan-500/15 dark:text-cyan-300'
-                      : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800/70 dark:hover:text-slate-200'
+                      ? 'bg-gradient-to-r from-cyan-500/15 to-emerald-500/10 text-cyan-700 ring-1 ring-cyan-500/25 dark:text-cyan-300'
+                      : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/[0.04] dark:hover:text-slate-100'
                   }`}
                 >
+                  {isActive && (
+                    <span className="absolute top-2 bottom-2 left-0 w-1 rounded-r-full bg-gradient-to-b from-cyan-400 to-emerald-400" />
+                  )}
                   <span className="flex items-center gap-3">
-                    <Icon className="h-4 w-4" />
+                    <Icon
+                      className={`h-4 w-4 transition ${
+                        isActive
+                          ? 'text-cyan-500 dark:text-cyan-400'
+                          : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'
+                      }`}
+                    />
                     {item.label}
                   </span>
                   {item.id === 'workouts' && (
-                    <span className="text-xs opacity-70">{data.workouts.length}</span>
+                    <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-bold text-slate-500 dark:bg-white/[0.06] dark:text-slate-400">
+                      {data.workouts.length}
+                    </span>
+                  )}
+                  {item.id === 'calendar' && activeProgramsCount > 0 && (
+                    <span className="rounded-md bg-emerald-500/15 px-1.5 py-0.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                      {activeProgramsCount} actif{activeProgramsCount > 1 ? 's' : ''}
+                    </span>
                   )}
                   {item.id === 'exercises' && (
-                    <span className="text-xs opacity-70">{data.exercises.length}</span>
+                    <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-bold text-slate-500 dark:bg-white/[0.06] dark:text-slate-400">
+                      {data.exercises.length}
+                    </span>
                   )}
                   {item.id === 'history' && data.history.length > 0 && (
-                    <span className="text-xs opacity-70">{data.history.length}</span>
+                    <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-bold text-slate-500 dark:bg-white/[0.06] dark:text-slate-400">
+                      {data.history.length}
+                    </span>
                   )}
                 </button>
               );
@@ -162,120 +200,152 @@ export function App() {
           </nav>
         </div>
 
-        <button
-          type="button"
-          onClick={toggleTheme}
-          className="flex items-center justify-between rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
-        >
-          <span>{data.settings.theme === 'dark' ? 'Thème sombre' : 'Thème clair'}</span>
-          {data.settings.theme === 'dark' ? (
-            <Moon className="h-4 w-4 text-cyan-400" />
-          ) : (
-            <Sun className="h-4 w-4 text-amber-500" />
-          )}
-        </button>
+        {/* Footer theme switch */}
+        <div className="space-y-3 border-t border-slate-200/70 pt-4 dark:border-white/[0.06]">
+          <div className="grid grid-cols-2 gap-1 rounded-xl border border-slate-200/80 bg-slate-100/80 p-1 dark:border-white/[0.07] dark:bg-white/[0.03]">
+            <button
+              type="button"
+              onClick={() => updateSettings({ theme: 'light' })}
+              className={`inline-flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-semibold transition ${
+                data.settings.theme === 'light'
+                  ? 'bg-white text-slate-900 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'
+              }`}
+            >
+              <Sun className="h-3.5 w-3.5 text-amber-500" />
+              Clair
+            </button>
+            <button
+              type="button"
+              onClick={() => updateSettings({ theme: 'dark' })}
+              className={`inline-flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-semibold transition ${
+                data.settings.theme === 'dark'
+                  ? 'bg-slate-800 text-cyan-300 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'
+              }`}
+            >
+              <Moon className="h-3.5 w-3.5 text-cyan-400" />
+              Sombre
+            </button>
+          </div>
+        </div>
       </aside>
 
       {/* Mobile Top Header */}
-      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200/80 bg-white/90 px-4 py-3 backdrop-blur-md md:hidden dark:border-slate-800/80 dark:bg-slate-950/90">
+      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200/70 bg-white/80 px-4 py-3 backdrop-blur-xl md:hidden dark:border-white/[0.06] dark:bg-[#070a0f]/80">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-400 to-emerald-500 text-slate-950">
-            <ListChecks className="h-4 w-4 stroke-[2.5]" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400 to-emerald-400 text-slate-950 shadow-md shadow-cyan-500/20">
+            <Zap className="h-4 w-4 fill-current" />
           </div>
-          <span className="text-base font-extrabold tracking-tight">StreetFlow</span>
+          <span className="font-display text-base font-bold tracking-tight">
+            StreetFlow
+          </span>
         </div>
 
-        <button
-          type="button"
-          onClick={toggleTheme}
-          aria-label="Changer le thème"
-          className="rounded-xl border border-slate-200 p-2 text-slate-600 dark:border-slate-800 dark:text-slate-300"
-        >
-          {data.settings.theme === 'dark' ? (
-            <Moon className="h-4 w-4 text-cyan-400" />
-          ) : (
-            <Sun className="h-4 w-4 text-amber-500" />
-          )}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setImportRunOpen(true)}
+            aria-label="Importer GPX ou FIT"
+            className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-2 text-emerald-600 dark:text-emerald-400"
+          >
+            <FileUp className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label="Changer le thème"
+            className="rounded-xl border border-slate-200 bg-white p-2 text-slate-600 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300"
+          >
+            {data.settings.theme === 'dark' ? (
+              <Moon className="h-4 w-4 text-cyan-400" />
+            ) : (
+              <Sun className="h-4 w-4 text-amber-500" />
+            )}
+          </button>
+        </div>
       </header>
 
       {/* Main Content Area */}
-      <main className="mx-auto max-w-6xl px-4 pt-5 pb-24 md:pl-72 md:pr-8 md:pt-8 md:pb-12">
-        {view === 'workouts' && (
-          <WorkoutList
-            workouts={data.workouts}
-            exerciseMap={exerciseMap}
-            onStartWorkout={(w) => setActiveWorkout(w)}
-            onCreateWorkout={openCreateWorkout}
-            onOpenImportRun={() => setImportRunOpen(true)}
-            onEditWorkout={openEditWorkout}
-            onDuplicateWorkout={duplicateWorkout}
-            onDeleteWorkout={deleteWorkout}
-          />
-        )}
+      <main className="mx-auto max-w-6xl px-4 pt-5 pb-28 md:pl-[300px] md:pr-8 md:pt-8 md:pb-14">
+        <div key={view} className="animate-view-in">
+          {view === 'workouts' && (
+            <WorkoutList
+              workouts={data.workouts}
+              history={data.history}
+              exerciseMap={exerciseMap}
+              onStartWorkout={(w) => setActiveWorkout(w)}
+              onCreateWorkout={openCreateWorkout}
+              onOpenImportRun={() => setImportRunOpen(true)}
+              onEditWorkout={openEditWorkout}
+              onDuplicateWorkout={duplicateWorkout}
+              onDeleteWorkout={deleteWorkout}
+            />
+          )}
 
-        {view === 'calendar' && (
-          <CalendarView
-            workouts={data.workouts}
-            exercises={data.exercises}
-            exerciseMap={exerciseMap}
-            history={data.history}
-            plannedWorkouts={data.plannedWorkouts}
-            programs={data.programs}
-            onStartWorkout={(w) => setActiveWorkout(w)}
-            onOpenImportRun={() => setImportRunOpen(true)}
-            onSavePlannedWorkout={savePlannedWorkout}
-            onDeletePlannedWorkout={deletePlannedWorkout}
-            onSaveProgram={saveProgram}
-            onToggleProgramActive={toggleProgramActive}
-            onDeleteProgram={deleteProgram}
-            onSaveExercise={saveExercise}
-          />
-        )}
+          {view === 'calendar' && (
+            <CalendarView
+              workouts={data.workouts}
+              exercises={data.exercises}
+              exerciseMap={exerciseMap}
+              history={data.history}
+              plannedWorkouts={data.plannedWorkouts}
+              programs={data.programs}
+              onStartWorkout={(w) => setActiveWorkout(w)}
+              onOpenImportRun={() => setImportRunOpen(true)}
+              onSavePlannedWorkout={savePlannedWorkout}
+              onDeletePlannedWorkout={deletePlannedWorkout}
+              onSaveProgram={saveProgram}
+              onToggleProgramActive={toggleProgramActive}
+              onDeleteProgram={deleteProgram}
+              onSaveExercise={saveExercise}
+            />
+          )}
 
-        {view === 'editor' && (
-          <WorkoutEditor
-            initialWorkout={editingWorkout}
-            exercises={data.exercises}
-            exerciseMap={exerciseMap}
-            onSaveWorkout={(w) => {
-              saveWorkout(w);
-              setView('workouts');
-            }}
-            onSaveExercise={saveExercise}
-            onCancel={() => setView('workouts')}
-          />
-        )}
+          {view === 'editor' && (
+            <WorkoutEditor
+              initialWorkout={editingWorkout}
+              exercises={data.exercises}
+              exerciseMap={exerciseMap}
+              onSaveWorkout={(w) => {
+                saveWorkout(w);
+                setView('workouts');
+              }}
+              onSaveExercise={saveExercise}
+              onCancel={() => setView('workouts')}
+            />
+          )}
 
-        {view === 'exercises' && (
-          <ExerciseLibrary
-            exercises={data.exercises}
-            onSaveExercise={saveExercise}
-            onDeleteExercise={deleteExercise}
-          />
-        )}
+          {view === 'exercises' && (
+            <ExerciseLibrary
+              exercises={data.exercises}
+              onSaveExercise={saveExercise}
+              onDeleteExercise={deleteExercise}
+            />
+          )}
 
-        {view === 'history' && (
-          <WorkoutHistory
-            history={data.history}
-            onOpenImportRun={() => setImportRunOpen(true)}
-            onDeleteLog={deleteSessionLog}
-          />
-        )}
+          {view === 'history' && (
+            <WorkoutHistory
+              history={data.history}
+              onOpenImportRun={() => setImportRunOpen(true)}
+              onDeleteLog={deleteSessionLog}
+            />
+          )}
 
-        {view === 'settings' && (
-          <SettingsView
-            settings={data.settings}
-            onUpdateSettings={updateSettings}
-            onExportJson={exportDataJson}
-            onImportJson={importDataJson}
-            onResetDefaults={resetToDefaults}
-          />
-        )}
+          {view === 'settings' && (
+            <SettingsView
+              settings={data.settings}
+              onUpdateSettings={updateSettings}
+              onExportJson={exportDataJson}
+              onImportJson={importDataJson}
+              onResetDefaults={resetToDefaults}
+            />
+          )}
+        </div>
       </main>
 
-      {/* Mobile Bottom Navigation */}
-      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 px-2 pt-2 pb-safe backdrop-blur-md md:hidden dark:border-slate-800 dark:bg-slate-950/95">
+      {/* Mobile Floating Glass Bottom Dock */}
+      <nav className="fixed inset-x-3 bottom-3 z-30 rounded-2xl border border-slate-200/90 bg-white/90 px-1.5 py-1.5 shadow-[0_12px_36px_rgba(0,0,0,0.18)] backdrop-blur-xl md:hidden dark:border-white/10 dark:bg-[#0d121c]/90 dark:shadow-[0_16px_40px_rgba(0,0,0,0.65)]">
         <div className="grid grid-cols-5 gap-1">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
@@ -286,19 +356,20 @@ export function App() {
                 key={item.id}
                 type="button"
                 onClick={() => setView(item.id)}
-                className={`flex flex-col items-center gap-1 rounded-xl py-1.5 text-[11px] font-semibold transition ${
+                className={`relative flex flex-col items-center gap-0.5 rounded-xl py-2 text-[10px] font-bold transition-all ${
                   isActive
-                    ? 'text-cyan-600 dark:text-cyan-400'
+                    ? 'bg-gradient-to-b from-cyan-500/18 to-emerald-500/10 text-cyan-600 dark:text-cyan-300'
                     : 'text-slate-500 dark:text-slate-400'
                 }`}
               >
-                <Icon className={`h-5 w-5 ${isActive ? 'stroke-[2.5]' : ''}`} />
+                <Icon className={`h-4.5 w-4.5 ${isActive ? 'stroke-[2.5]' : ''}`} />
                 <span>{item.shortLabel}</span>
               </button>
             );
           })}
         </div>
       </nav>
+
       {/* Strava GPX / FIT Import Modal */}
       {importRunOpen && (
         <RunImportModal

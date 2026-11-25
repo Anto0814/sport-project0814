@@ -87,11 +87,9 @@ export function WorkoutEditor({
       ? String(Math.round(initialWorkout.runningConfig.targetDurationSec / 60))
       : '45'
   );
-  const [runNotes, setRunNotes] = useState(
-    initialWorkout?.runningConfig?.notes ?? ''
-  );
+  const [runNotes, setRunNotes] = useState(initialWorkout?.runningConfig?.notes ?? '');
 
-  // Exercise picker state (sidebar on desktop, modal on mobile)
+  // Exercise picker state
   const [pickerOpenMobile, setPickerOpenMobile] = useState(false);
   const [pickerQuery, setPickerQuery] = useState('');
   const [showQuickCreate, setShowQuickCreate] = useState(false);
@@ -101,7 +99,10 @@ export function WorkoutEditor({
   const [errorMsg, setErrorMsg] = useState('');
 
   const parsedRunDist = Math.max(0, Number(targetDistanceKm) || 0);
-  const parsedRunDurSec = Math.max(0, Math.round((Number(targetDurationMin) || 0) * 60));
+  const parsedRunDurSec = Math.max(
+    0,
+    Math.round((Number(targetDurationMin) || 0) * 60)
+  );
 
   const draftWorkout: WorkoutTemplate = useMemo(
     () => ({
@@ -207,7 +208,10 @@ export function WorkoutEditor({
     setItems((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const updateItem = (id: string, updater: (item: WorkoutExercise) => WorkoutExercise) => {
+  const updateItem = (
+    id: string,
+    updater: (item: WorkoutExercise) => WorkoutExercise
+  ) => {
     setItems((prev) => prev.map((item) => (item.id === id ? updater(item) : item)));
   };
 
@@ -282,22 +286,22 @@ export function WorkoutEditor({
   const pickerPanel = (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+        <h3 className="text-xs font-extrabold uppercase tracking-widest text-slate-500">
           Ajouter un exercice
         </h3>
         <button
           type="button"
           onClick={() => setShowQuickCreate((v) => !v)}
-          className="text-xs font-semibold text-cyan-600 hover:underline dark:text-cyan-400"
+          className="text-xs font-bold text-cyan-600 hover:underline dark:text-cyan-400"
         >
-          {showQuickCreate ? 'Fermer' : '+ Créer un exo'}
+          {showQuickCreate ? 'Fermer' : '+ Créer'}
         </button>
       </div>
 
       {showQuickCreate && (
         <form
           onSubmit={handleQuickCreateExercise}
-          className="space-y-2.5 rounded-xl border border-cyan-500/30 bg-cyan-500/5 p-3"
+          className="space-y-2.5 rounded-xl border border-cyan-500/30 bg-cyan-500/8 p-3"
         >
           <input
             type="text"
@@ -305,13 +309,13 @@ export function WorkoutEditor({
             value={quickExName}
             onChange={(e) => setQuickExName(e.target.value)}
             placeholder="Nom de l'exercice..."
-            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-cyan-500 dark:border-slate-700 dark:bg-slate-950"
+            className="input-field py-2 text-xs"
           />
           <div className="grid grid-cols-2 gap-2">
             <select
               value={quickExUnit}
               onChange={(e) => setQuickExUnit(e.target.value as ExerciseUnit)}
-              className="rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs dark:border-slate-700 dark:bg-slate-950"
+              className="input-field py-2 text-xs"
             >
               <option value="reps">Répétitions</option>
               <option value="seconds">Secondes</option>
@@ -319,7 +323,7 @@ export function WorkoutEditor({
             <select
               value={quickExCat}
               onChange={(e) => setQuickExCat(e.target.value as ExerciseCategory)}
-              className="rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs dark:border-slate-700 dark:bg-slate-950"
+              className="input-field py-2 text-xs"
             >
               {STREET_CATEGORIES.map((cat) => (
                 <option key={cat} value={cat}>
@@ -328,11 +332,8 @@ export function WorkoutEditor({
               ))}
             </select>
           </div>
-          <button
-            type="submit"
-            className="w-full rounded-lg bg-cyan-500 py-2 text-xs font-semibold text-slate-950 hover:bg-cyan-400"
-          >
-            Créer et ajouter à la séance
+          <button type="submit" className="btn-primary w-full py-2 text-xs">
+            Créer et ajouter
           </button>
         </form>
       )}
@@ -344,7 +345,7 @@ export function WorkoutEditor({
           value={pickerQuery}
           onChange={(e) => setPickerQuery(e.target.value)}
           placeholder="Rechercher..."
-          className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pr-3 pl-9 text-sm outline-none focus:border-cyan-500 dark:border-slate-800 dark:bg-slate-950"
+          className="input-field py-2 pl-9 text-xs"
         />
       </div>
 
@@ -356,11 +357,11 @@ export function WorkoutEditor({
               key={ex.id}
               type="button"
               onClick={() => addExerciseToWorkout(ex)}
-              className="flex w-full items-center justify-between gap-2 rounded-xl border border-slate-200/80 bg-slate-50/70 px-3 py-2.5 text-left transition hover:border-cyan-500/50 hover:bg-cyan-500/10 dark:border-slate-800 dark:bg-slate-950/60"
+              className="surface-inset flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left transition hover:border-cyan-400/50 hover:bg-cyan-500/10"
             >
               <div className="min-w-0">
-                <div className="truncate text-sm font-medium">{ex.name}</div>
-                <div className="mt-0.5 flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+                <div className="truncate text-sm font-semibold">{ex.name}</div>
+                <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
                   <span>{meta.label}</span>
                   <span>·</span>
                   <span>{ex.unit === 'seconds' ? 'Temps (s)' : 'Reps'}</span>
@@ -382,21 +383,21 @@ export function WorkoutEditor({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-xl border border-slate-200 p-2.5 text-slate-600 hover:bg-slate-100 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
+            className="btn-secondary p-2.5"
             aria-label="Retour"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div>
             {contextBadge && (
-              <span className="mb-1 inline-block rounded-full bg-cyan-500/15 px-2.5 py-0.5 text-[11px] font-semibold text-cyan-600 dark:text-cyan-300">
+              <span className="mb-1 inline-block rounded-full bg-cyan-500/15 px-2.5 py-0.5 text-[11px] font-bold text-cyan-600 dark:text-cyan-300">
                 {contextBadge}
               </span>
             )}
-            <h1 className="text-xl font-bold sm:text-2xl">
+            <h1 className="font-display text-xl font-bold sm:text-2xl">
               {titleOverride ?? (initialWorkout ? 'Modifier la séance' : 'Nouvelle séance')}
             </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
               {discipline === 'running'
                 ? `${parsedRunDist > 0 ? `${parsedRunDist} km` : 'Distance libre'} · ${parsedRunDurSec > 0 ? formatDuration(parsedRunDurSec) : 'Durée libre'}`
                 : `${items.length} exercice${items.length > 1 ? 's' : ''} · ${totalSets} série${totalSets > 1 ? 's' : ''} · ~${formatDuration(estimatedSec)}`}
@@ -408,14 +409,14 @@ export function WorkoutEditor({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium hover:bg-slate-100 dark:border-slate-800 dark:hover:bg-slate-800"
+            className="btn-secondary px-4 py-2.5 text-sm"
           >
             Annuler
           </button>
           <button
             type="button"
             onClick={handleSave}
-            className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-emerald-500/20 hover:bg-emerald-400 sm:flex-none"
+            className="btn-primary flex-1 px-5 py-2.5 text-sm sm:flex-none"
           >
             <Save className="h-4 w-4" />
             Enregistrer
@@ -424,23 +425,22 @@ export function WorkoutEditor({
       </div>
 
       {errorMsg && (
-        <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm font-medium text-rose-600 dark:text-rose-300">
+        <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-600 dark:text-rose-300">
           {errorMsg}
         </div>
       )}
 
-      {/* Adaptive 2-column layout on desktop for Street Workout, focused card for Running */}
       <div
         className={`grid grid-cols-1 gap-6 ${
           discipline === 'street_workout' ? 'lg:grid-cols-[1fr_340px]' : ''
         }`}
       >
         <div className="space-y-5">
-          {/* Workout info card */}
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+          {/* Workout Metadata */}
+          <section className="surface-card p-5 sm:p-6">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="sm:col-span-2">
-                <label className="mb-1.5 block text-xs font-medium text-slate-500 dark:text-slate-400">
+                <label className="mb-1.5 block text-xs font-semibold text-slate-500">
                   Catégorie d&apos;entraînement
                 </label>
                 <div className="grid grid-cols-2 gap-2.5">
@@ -450,10 +450,10 @@ export function WorkoutEditor({
                       setDiscipline('street_workout');
                       setErrorMsg('');
                     }}
-                    className={`inline-flex items-center justify-center gap-2 rounded-xl border py-2.5 text-sm font-semibold transition ${
+                    className={`inline-flex items-center justify-center gap-2 rounded-xl border py-3 text-sm font-bold transition ${
                       discipline === 'street_workout'
-                        ? 'border-cyan-500 bg-cyan-500/15 text-cyan-700 dark:text-cyan-300'
-                        : 'border-slate-200 dark:border-slate-700'
+                        ? 'border-cyan-400 bg-cyan-500/15 text-cyan-700 dark:text-cyan-300'
+                        : 'border-slate-200 dark:border-white/10'
                     }`}
                   >
                     <Dumbbell className="h-4 w-4" />
@@ -466,10 +466,10 @@ export function WorkoutEditor({
                       if (accent === 'cyan') setAccent('emerald');
                       setErrorMsg('');
                     }}
-                    className={`inline-flex items-center justify-center gap-2 rounded-xl border py-2.5 text-sm font-semibold transition ${
+                    className={`inline-flex items-center justify-center gap-2 rounded-xl border py-3 text-sm font-bold transition ${
                       discipline === 'running'
-                        ? 'border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                        : 'border-slate-200 dark:border-slate-700'
+                        ? 'border-emerald-400 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
+                        : 'border-slate-200 dark:border-white/10'
                     }`}
                   >
                     <Footprints className="h-4 w-4" />
@@ -479,7 +479,7 @@ export function WorkoutEditor({
               </div>
 
               <div className="sm:col-span-2">
-                <label className="mb-1.5 block text-xs font-medium text-slate-500 dark:text-slate-400">
+                <label className="mb-1.5 block text-xs font-semibold text-slate-500">
                   Nom de la séance
                 </label>
                 <input
@@ -494,12 +494,12 @@ export function WorkoutEditor({
                       ? 'Ex : Sortie Endurance 10 km, Fractionné 30/30...'
                       : 'Ex : Push Street, Full Body Parc, Pull Force...'
                   }
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-base font-medium outline-none focus:border-cyan-500 dark:border-slate-700 dark:bg-slate-950"
+                  className="input-field font-display text-base font-bold"
                 />
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-slate-500 dark:text-slate-400">
+                <label className="mb-1.5 block text-xs font-semibold text-slate-500">
                   Description (optionnel)
                 </label>
                 <input
@@ -507,12 +507,12 @@ export function WorkoutEditor({
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Ex : Focus dips lourds et gainage"
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm outline-none focus:border-cyan-500 dark:border-slate-700 dark:bg-slate-950"
+                  className="input-field"
                 />
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-slate-500 dark:text-slate-400">
+                <label className="mb-1.5 block text-xs font-semibold text-slate-500">
                   Couleur repère
                 </label>
                 <div className="flex items-center gap-2.5 pt-1">
@@ -528,7 +528,7 @@ export function WorkoutEditor({
                         className={`flex h-8 w-8 items-center justify-center rounded-full border-2 transition ${
                           selected
                             ? 'scale-110 border-slate-900 dark:border-white'
-                            : 'border-transparent opacity-70 hover:opacity-100'
+                            : 'border-transparent opacity-65 hover:opacity-100'
                         }`}
                       >
                         <span className={`h-5 w-5 rounded-full ${style.dot}`} />
@@ -541,21 +541,21 @@ export function WorkoutEditor({
           </section>
 
           {discipline === 'running' ? (
-            <section className="space-y-4 rounded-2xl border border-emerald-500/30 bg-white p-5 dark:bg-slate-900">
-              <div className="flex items-center gap-2 text-sm font-bold text-emerald-600 dark:text-emerald-400">
+            <section className="surface-card space-y-4 border-emerald-500/30 p-5 sm:p-6">
+              <div className="flex items-center gap-2 font-display text-base font-bold text-emerald-600 dark:text-emerald-400">
                 <Footprints className="h-4 w-4" />
                 Paramètres de la course à pied
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div>
-                  <label className="mb-1.5 block text-xs font-medium text-slate-500 dark:text-slate-400">
+                  <label className="mb-1.5 block text-xs font-semibold text-slate-500">
                     Type de sortie
                   </label>
                   <select
                     value={runType}
                     onChange={(e) => setRunType(e.target.value as RunningCategory)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-950"
+                    className="input-field"
                   >
                     {RUNNING_CATEGORIES.map((cat) => (
                       <option key={cat} value={cat}>
@@ -566,7 +566,7 @@ export function WorkoutEditor({
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-xs font-medium text-slate-500 dark:text-slate-400">
+                  <label className="mb-1.5 block text-xs font-semibold text-slate-500">
                     Distance prévue (km)
                   </label>
                   <input
@@ -576,12 +576,12 @@ export function WorkoutEditor({
                     value={targetDistanceKm}
                     onChange={(e) => setTargetDistanceKm(e.target.value)}
                     placeholder="Ex : 8.5"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-base font-bold tabular-nums outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-950"
+                    className="input-field font-display text-base font-bold tabular-nums"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-xs font-medium text-slate-500 dark:text-slate-400">
+                  <label className="mb-1.5 block text-xs font-semibold text-slate-500">
                     Durée prévue (minutes)
                   </label>
                   <input
@@ -591,13 +591,13 @@ export function WorkoutEditor({
                     value={targetDurationMin}
                     onChange={(e) => setTargetDurationMin(e.target.value)}
                     placeholder="Ex : 45"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-base font-bold tabular-nums outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-950"
+                    className="input-field font-display text-base font-bold tabular-nums"
                   />
                 </div>
               </div>
 
               {parsedRunDist > 0 && parsedRunDurSec > 0 && (
-                <div className="flex flex-wrap items-center gap-4 rounded-xl bg-emerald-500/10 px-4 py-3 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                <div className="flex flex-wrap items-center gap-4 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-xs font-bold text-emerald-700 dark:text-emerald-300">
                   <span>
                     Allure cible : {formatPace(parsedRunDurSec / parsedRunDist)}
                   </span>
@@ -610,7 +610,7 @@ export function WorkoutEditor({
               )}
 
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-slate-500 dark:text-slate-400">
+                <label className="mb-1.5 block text-xs font-semibold text-slate-500">
                   Consignes / Détails (optionnel)
                 </label>
                 <input
@@ -618,381 +618,386 @@ export function WorkoutEditor({
                   value={runNotes}
                   onChange={(e) => setRunNotes(e.target.value)}
                   placeholder="Ex : 15 min échauffement + 10×30/30 + 10 min retour au calme..."
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-950"
+                  className="input-field"
                 />
               </div>
             </section>
           ) : (
             <>
-              {/* Mobile add exercise button */}
               <button
                 type="button"
                 onClick={() => setPickerOpenMobile(true)}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-cyan-500/50 bg-cyan-500/10 py-3.5 text-sm font-semibold text-cyan-700 lg:hidden dark:text-cyan-300"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-cyan-500/45 bg-cyan-500/10 py-3.5 text-sm font-bold text-cyan-700 lg:hidden dark:text-cyan-300"
               >
                 <Plus className="h-5 w-5" />
                 Ajouter un exercice à la séance
               </button>
 
-              {/* Ordered exercises */}
               {items.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-slate-300 p-8 text-center dark:border-slate-800">
+                <div className="surface-card border-dashed p-10 text-center">
                   <Dumbbell className="mx-auto h-9 w-9 text-slate-400" />
-                  <p className="mt-2 text-sm font-medium text-slate-600 dark:text-slate-400">
+                  <p className="mt-2.5 text-sm font-medium text-slate-600 dark:text-slate-400">
                     Aucun exercice pour l&apos;instant. Sélectionne-en dans la liste{' '}
                     <span className="hidden lg:inline">à droite</span>
                     <span className="lg:hidden">ci-dessus</span>.
                   </p>
                 </div>
               ) : (
-            <div className="space-y-4">
-              {items.map((item, idx) => {
-                const ex = exerciseMap.get(item.exerciseId);
-                const unit = ex?.unit ?? 'reps';
-                const unitLabel = unit === 'seconds' ? 'sec' : 'reps';
-                const isLastExercise = idx === items.length - 1;
+                <div className="space-y-4">
+                  {items.map((item, idx) => {
+                    const ex = exerciseMap.get(item.exerciseId);
+                    const unit = ex?.unit ?? 'reps';
+                    const unitLabel = unit === 'seconds' ? 'sec' : 'reps';
+                    const isLastExercise = idx === items.length - 1;
 
-                return (
-                  <div
-                    key={item.id}
-                    className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 dark:border-slate-800 dark:bg-slate-900"
-                  >
-                    {/* Exercise header */}
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-3">
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-sm font-bold text-slate-700 dark:bg-slate-800 dark:text-slate-200">
-                          {idx + 1}
-                        </span>
-                        <div>
-                          <h3 className="font-bold text-slate-900 dark:text-slate-100">
-                            {ex?.name ?? 'Exercice inconnu'}
-                          </h3>
-                          <span className="text-xs text-slate-500 dark:text-slate-400">
-                            Objectif en {unit === 'seconds' ? 'secondes de maintien' : 'répétitions'}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          disabled={idx === 0}
-                          onClick={() => moveItem(idx, -1)}
-                          title="Monter"
-                          className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 disabled:opacity-30 dark:hover:bg-slate-800"
-                        >
-                          <ArrowUp className="h-4 w-4" />
-                        </button>
-                        <button
-                          type="button"
-                          disabled={isLastExercise}
-                          onClick={() => moveItem(idx, 1)}
-                          title="Descendre"
-                          className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 disabled:opacity-30 dark:hover:bg-slate-800"
-                        >
-                          <ArrowDown className="h-4 w-4" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => removeItem(item.id)}
-                          title="Retirer"
-                          className="rounded-lg p-2 text-slate-500 hover:bg-rose-500/10 hover:text-rose-500"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Sets count + copy helper */}
-                    <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 dark:border-slate-800">
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                          Séries
-                        </span>
-                        <div className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-1 dark:border-slate-800 dark:bg-slate-950">
-                          <button
-                            type="button"
-                            onClick={() => changeSetCount(item.id, -1)}
-                            className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800"
-                            aria-label="Retirer une série"
-                          >
-                            <Minus className="h-4 w-4" />
-                          </button>
-                          <span className="w-7 text-center text-sm font-bold tabular-nums">
-                            {item.sets.length}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => changeSetCount(item.id, 1)}
-                            className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800"
-                            aria-label="Ajouter une série"
-                          >
-                            <Plus className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {item.sets.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => applyFirstSetToAll(item.id)}
-                          className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-cyan-600 hover:bg-cyan-500/10 dark:text-cyan-400"
-                        >
-                          <CopyCheck className="h-3.5 w-3.5" />
-                          Copier Série 1 sur toutes
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Per-set targets */}
-                    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                      {item.sets.map((set, setIdx) => (
-                        <div
-                          key={set.id}
-                          className="flex items-center justify-between gap-2 rounded-xl border border-slate-200/80 bg-slate-50/70 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/70"
-                        >
-                          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                            Série {setIdx + 1}
-                          </span>
-
-                          <div className="flex items-center gap-2">
-                            <div className="flex items-center gap-1">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  updateSetTarget(
-                                    item.id,
-                                    setIdx,
-                                    set.target - (unit === 'seconds' ? 5 : 1)
-                                  )
-                                }
-                                className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-xs hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900"
-                              >
-                                -
-                              </button>
-                              <input
-                                type="number"
-                                min={1}
-                                max={999}
-                                value={set.target}
-                                onChange={(e) =>
-                                  updateSetTarget(item.id, setIdx, Number(e.target.value))
-                                }
-                                className="w-12 rounded-lg border border-slate-200 bg-white py-1 text-center text-sm font-bold tabular-nums outline-none focus:border-cyan-500 dark:border-slate-700 dark:bg-slate-900"
-                              />
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  updateSetTarget(
-                                    item.id,
-                                    setIdx,
-                                    set.target + (unit === 'seconds' ? 5 : 1)
-                                  )
-                                }
-                                className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-xs hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900"
-                              >
-                                +
-                              </button>
-                              <span className="w-8 text-xs text-slate-500">{unitLabel}</span>
+                    return (
+                      <div key={item.id} className="surface-card p-4 sm:p-5">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <span className="font-display flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400/20 to-emerald-400/20 text-sm font-bold text-cyan-600 dark:text-cyan-300">
+                              {idx + 1}
+                            </span>
+                            <div>
+                              <h3 className="font-display text-base font-bold">
+                                {ex?.name ?? 'Exercice inconnu'}
+                              </h3>
+                              <span className="text-xs text-slate-500 dark:text-slate-400">
+                                Objectif en{' '}
+                                {unit === 'seconds'
+                                  ? 'secondes de maintien'
+                                  : 'répétitions'}
+                              </span>
                             </div>
+                          </div>
 
-                            <input
-                              type="number"
-                              min={0}
-                              step={0.5}
-                              placeholder="+kg"
-                              value={set.weightKg ?? ''}
-                              onChange={(e) =>
-                                updateSetWeight(item.id, setIdx, e.target.value)
-                              }
-                              title="Lestage additionnel en kg (optionnel)"
-                              className="w-14 rounded-lg border border-slate-200 bg-white px-1.5 py-1 text-center text-xs outline-none focus:border-cyan-500 dark:border-slate-700 dark:bg-slate-900"
-                            />
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => moveItem(idx, -1)}
+                              title="Monter"
+                              className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 disabled:opacity-30 dark:hover:bg-white/[0.06]"
+                            >
+                              <ArrowUp className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              disabled={isLastExercise}
+                              onClick={() => moveItem(idx, 1)}
+                              title="Descendre"
+                              className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 disabled:opacity-30 dark:hover:bg-white/[0.06]"
+                            >
+                              <ArrowDown className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => removeItem(item.id)}
+                              title="Retirer"
+                              className="rounded-lg p-2 text-slate-500 hover:bg-rose-500/10 hover:text-rose-500"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
                           </div>
                         </div>
-                      ))}
-                    </div>
 
-                    {/* Rest times: between sets AND between exercises */}
-                    <div className="mt-4 grid grid-cols-1 gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2 dark:border-slate-800">
-                      {/* Rest between sets */}
-                      <div className="rounded-xl bg-slate-50 p-3 dark:bg-slate-950/70">
-                        <div className="flex items-center justify-between">
-                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-cyan-600 dark:text-cyan-400">
-                            <Clock className="h-3.5 w-3.5" />
-                            Repos entre séries
-                          </span>
-                          <span className="text-sm font-bold tabular-nums">
-                            {formatDuration(item.restBetweenSetsSec)}
-                          </span>
-                        </div>
-                        <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              updateItem(item.id, (cur) => ({
-                                ...cur,
-                                restBetweenSetsSec: Math.max(0, cur.restBetweenSetsSec - 15),
-                              }))
-                            }
-                            className="rounded-lg border border-slate-200 px-2 py-1 text-xs font-medium hover:bg-slate-200 dark:border-slate-800 dark:hover:bg-slate-800"
-                          >
-                            -15s
-                          </button>
-                          {REST_SET_PRESETS.map((sec) => (
+                        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 dark:border-white/[0.06]">
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                              Séries
+                            </span>
+                            <div className="surface-inset inline-flex items-center gap-2 p-1">
+                              <button
+                                type="button"
+                                onClick={() => changeSetCount(item.id, -1)}
+                                className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-white/10"
+                                aria-label="Retirer une série"
+                              >
+                                <Minus className="h-4 w-4" />
+                              </button>
+                              <span className="font-display w-7 text-center text-sm font-bold tabular-nums">
+                                {item.sets.length}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => changeSetCount(item.id, 1)}
+                                className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-white/10"
+                                aria-label="Ajouter une série"
+                              >
+                                <Plus className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+
+                          {item.sets.length > 1 && (
                             <button
-                              key={sec}
                               type="button"
-                              onClick={() =>
-                                updateItem(item.id, (cur) => ({
-                                  ...cur,
-                                  restBetweenSetsSec: sec,
-                                }))
-                              }
-                              className={`rounded-lg px-2 py-1 text-xs font-medium transition ${
-                                item.restBetweenSetsSec === sec
-                                  ? 'bg-cyan-500 text-slate-950'
-                                  : 'bg-slate-200/70 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
-                              }`}
+                              onClick={() => applyFirstSetToAll(item.id)}
+                              className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-bold text-cyan-600 hover:bg-cyan-500/10 dark:text-cyan-400"
                             >
-                              {formatDuration(sec)}
+                              <CopyCheck className="h-3.5 w-3.5" />
+                              Copier Série 1 sur toutes
                             </button>
+                          )}
+                        </div>
+
+                        <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                          {item.sets.map((set, setIdx) => (
+                            <div
+                              key={set.id}
+                              className="surface-inset flex items-center justify-between gap-2 px-3 py-2"
+                            >
+                              <span className="text-xs font-bold text-slate-500">
+                                Série {setIdx + 1}
+                              </span>
+
+                              <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      updateSetTarget(
+                                        item.id,
+                                        setIdx,
+                                        set.target - (unit === 'seconds' ? 5 : 1)
+                                      )
+                                    }
+                                    className="btn-secondary h-7 w-7 rounded-lg text-xs"
+                                  >
+                                    -
+                                  </button>
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    max={999}
+                                    value={set.target}
+                                    onChange={(e) =>
+                                      updateSetTarget(
+                                        item.id,
+                                        setIdx,
+                                        Number(e.target.value)
+                                      )
+                                    }
+                                    className="w-12 rounded-lg border border-slate-200 bg-white py-1 text-center text-sm font-bold tabular-nums outline-none focus:border-cyan-500 dark:border-white/10 dark:bg-[#0d121c]"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      updateSetTarget(
+                                        item.id,
+                                        setIdx,
+                                        set.target + (unit === 'seconds' ? 5 : 1)
+                                      )
+                                    }
+                                    className="btn-secondary h-7 w-7 rounded-lg text-xs"
+                                  >
+                                    +
+                                  </button>
+                                  <span className="w-8 text-xs text-slate-500">
+                                    {unitLabel}
+                                  </span>
+                                </div>
+
+                                <input
+                                  type="number"
+                                  min={0}
+                                  step={0.5}
+                                  placeholder="+kg"
+                                  value={set.weightKg ?? ''}
+                                  onChange={(e) =>
+                                    updateSetWeight(item.id, setIdx, e.target.value)
+                                  }
+                                  title="Lestage additionnel en kg (optionnel)"
+                                  className="w-14 rounded-lg border border-slate-200 bg-white px-1.5 py-1 text-center text-xs outline-none focus:border-cyan-500 dark:border-white/10 dark:bg-[#0d121c]"
+                                />
+                              </div>
+                            </div>
                           ))}
-                          <button
-                            type="button"
-                            onClick={() =>
+                        </div>
+
+                        <div className="mt-4 grid grid-cols-1 gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2 dark:border-white/[0.06]">
+                          <div className="surface-inset p-3.5">
+                            <div className="flex items-center justify-between">
+                              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-cyan-600 dark:text-cyan-400">
+                                <Clock className="h-3.5 w-3.5" />
+                                Repos entre séries
+                              </span>
+                              <span className="font-display text-sm font-bold tabular-nums">
+                                {formatDuration(item.restBetweenSetsSec)}
+                              </span>
+                            </div>
+                            <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateItem(item.id, (cur) => ({
+                                    ...cur,
+                                    restBetweenSetsSec: Math.max(
+                                      0,
+                                      cur.restBetweenSetsSec - 15
+                                    ),
+                                  }))
+                                }
+                                className="btn-secondary rounded-lg px-2 py-1 text-xs"
+                              >
+                                -15s
+                              </button>
+                              {REST_SET_PRESETS.map((sec) => (
+                                <button
+                                  key={sec}
+                                  type="button"
+                                  onClick={() =>
+                                    updateItem(item.id, (cur) => ({
+                                      ...cur,
+                                      restBetweenSetsSec: sec,
+                                    }))
+                                  }
+                                  className={`rounded-lg px-2 py-1 text-xs font-bold transition ${
+                                    item.restBetweenSetsSec === sec
+                                      ? 'bg-cyan-400 text-slate-950'
+                                      : 'bg-slate-200/70 text-slate-700 dark:bg-white/[0.07] dark:text-slate-300'
+                                  }`}
+                                >
+                                  {formatDuration(sec)}
+                                </button>
+                              ))}
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateItem(item.id, (cur) => ({
+                                    ...cur,
+                                    restBetweenSetsSec: Math.min(
+                                      600,
+                                      cur.restBetweenSetsSec + 15
+                                    ),
+                                  }))
+                                }
+                                className="btn-secondary rounded-lg px-2 py-1 text-xs"
+                              >
+                                +15s
+                              </button>
+                            </div>
+                          </div>
+
+                          <div
+                            className={`surface-inset p-3.5 ${
+                              isLastExercise ? 'opacity-55' : ''
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-600 dark:text-amber-400">
+                                <Clock className="h-3.5 w-3.5" />
+                                {isLastExercise
+                                  ? 'Repos fin de séance'
+                                  : 'Repos avant exo suivant'}
+                              </span>
+                              <span className="font-display text-sm font-bold tabular-nums">
+                                {formatDuration(item.restAfterExerciseSec)}
+                              </span>
+                            </div>
+                            <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateItem(item.id, (cur) => ({
+                                    ...cur,
+                                    restAfterExerciseSec: Math.max(
+                                      0,
+                                      cur.restAfterExerciseSec - 15
+                                    ),
+                                  }))
+                                }
+                                className="btn-secondary rounded-lg px-2 py-1 text-xs"
+                              >
+                                -15s
+                              </button>
+                              {REST_EXO_PRESETS.map((sec) => (
+                                <button
+                                  key={sec}
+                                  type="button"
+                                  onClick={() =>
+                                    updateItem(item.id, (cur) => ({
+                                      ...cur,
+                                      restAfterExerciseSec: sec,
+                                    }))
+                                  }
+                                  className={`rounded-lg px-2 py-1 text-xs font-bold transition ${
+                                    item.restAfterExerciseSec === sec
+                                      ? 'bg-amber-400 text-slate-950'
+                                      : 'bg-slate-200/70 text-slate-700 dark:bg-white/[0.07] dark:text-slate-300'
+                                  }`}
+                                >
+                                  {formatDuration(sec)}
+                                </button>
+                              ))}
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateItem(item.id, (cur) => ({
+                                    ...cur,
+                                    restAfterExerciseSec: Math.min(
+                                      900,
+                                      cur.restAfterExerciseSec + 15
+                                    ),
+                                  }))
+                                }
+                                className="btn-secondary rounded-lg px-2 py-1 text-xs"
+                              >
+                                +15s
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-3">
+                          <input
+                            type="text"
+                            value={item.notes ?? ''}
+                            onChange={(e) =>
                               updateItem(item.id, (cur) => ({
                                 ...cur,
-                                restBetweenSetsSec: Math.min(600, cur.restBetweenSetsSec + 15),
+                                notes: e.target.value || undefined,
                               }))
                             }
-                            className="rounded-lg border border-slate-200 px-2 py-1 text-xs font-medium hover:bg-slate-200 dark:border-slate-800 dark:hover:bg-slate-800"
-                          >
-                            +15s
-                          </button>
+                            placeholder="Note pour cet exo (ex: tempo lent, prise large, élastique)..."
+                            className="input-field py-2 text-xs"
+                          />
                         </div>
                       </div>
-
-                      {/* Rest between exercises */}
-                      <div
-                        className={`rounded-xl p-3 ${
-                          isLastExercise
-                            ? 'bg-slate-50/50 opacity-60 dark:bg-slate-950/40'
-                            : 'bg-slate-50 dark:bg-slate-950/70'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
-                            <Clock className="h-3.5 w-3.5" />
-                            {isLastExercise
-                              ? 'Repos fin de séance (optionnel)'
-                              : 'Repos avant exo suivant'}
-                          </span>
-                          <span className="text-sm font-bold tabular-nums">
-                            {formatDuration(item.restAfterExerciseSec)}
-                          </span>
-                        </div>
-                        <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              updateItem(item.id, (cur) => ({
-                                ...cur,
-                                restAfterExerciseSec: Math.max(0, cur.restAfterExerciseSec - 15),
-                              }))
-                            }
-                            className="rounded-lg border border-slate-200 px-2 py-1 text-xs font-medium hover:bg-slate-200 dark:border-slate-800 dark:hover:bg-slate-800"
-                          >
-                            -15s
-                          </button>
-                          {REST_EXO_PRESETS.map((sec) => (
-                            <button
-                              key={sec}
-                              type="button"
-                              onClick={() =>
-                                updateItem(item.id, (cur) => ({
-                                  ...cur,
-                                  restAfterExerciseSec: sec,
-                                }))
-                              }
-                              className={`rounded-lg px-2 py-1 text-xs font-medium transition ${
-                                item.restAfterExerciseSec === sec
-                                  ? 'bg-amber-500 text-slate-950'
-                                  : 'bg-slate-200/70 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
-                              }`}
-                            >
-                              {formatDuration(sec)}
-                            </button>
-                          ))}
-                          <button
-                            type="button"
-                            onClick={() =>
-                              updateItem(item.id, (cur) => ({
-                                ...cur,
-                                restAfterExerciseSec: Math.min(900, cur.restAfterExerciseSec + 15),
-                              }))
-                            }
-                            className="rounded-lg border border-slate-200 px-2 py-1 text-xs font-medium hover:bg-slate-200 dark:border-slate-800 dark:hover:bg-slate-800"
-                          >
-                            +15s
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Optional per-exercise note */}
-                    <div className="mt-3">
-                      <input
-                        type="text"
-                        value={item.notes ?? ''}
-                        onChange={(e) =>
-                          updateItem(item.id, (cur) => ({
-                            ...cur,
-                            notes: e.target.value || undefined,
-                          }))
-                        }
-                        placeholder="Note pour cet exo (ex: tempo lent, prise large, élastique)..."
-                        className="w-full rounded-xl border border-slate-200/80 bg-slate-50/60 px-3 py-2 text-xs outline-none focus:border-cyan-500 dark:border-slate-800 dark:bg-slate-950/60"
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                    );
+                  })}
+                </div>
+              )}
             </>
           )}
         </div>
 
-        {/* Desktop sticky exercise picker (Street Workout only) */}
         {discipline === 'street_workout' && (
           <aside className="hidden lg:block">
-            <div className="sticky top-6 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-              {pickerPanel}
-            </div>
+            <div className="surface-card sticky top-6 p-5">{pickerPanel}</div>
           </aside>
         )}
       </div>
 
-      {/* Mobile slide-up modal exercise picker */}
       {discipline === 'street_workout' && pickerOpenMobile && (
-        <div className="fixed inset-0 z-50 flex items-end bg-slate-950/70 backdrop-blur-xs lg:hidden">
-          <div className="max-h-[85vh] w-full overflow-y-auto rounded-t-3xl border-t border-slate-200 bg-white p-5 pb-safe dark:border-slate-800 dark:bg-slate-900">
+        <div className="fixed inset-0 z-50 flex items-end bg-black/75 backdrop-blur-sm lg:hidden">
+          <div className="surface-card max-h-[85vh] w-full overflow-y-auto rounded-t-3xl p-5 pb-safe">
             <div className="mb-3 flex items-center justify-between">
-              <span className="text-base font-bold">Choisir un exercice</span>
+              <span className="font-display text-base font-bold">
+                Choisir un exercice
+              </span>
               <button
                 type="button"
                 onClick={() => setPickerOpenMobile(false)}
-                className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="btn-secondary p-2"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </button>
             </div>
             {pickerPanel}
             <button
               type="button"
               onClick={() => setPickerOpenMobile(false)}
-              className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-slate-200 py-3 text-sm font-semibold text-slate-800 dark:bg-slate-800 dark:text-slate-100"
+              className="btn-primary mt-4 w-full py-3 text-sm"
             >
               <Check className="h-4 w-4" />
               Terminer

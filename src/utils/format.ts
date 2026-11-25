@@ -208,36 +208,46 @@ export const CATEGORY_META: Record<
 
 export const WORKOUT_ACCENTS: Record<
   NonNullable<WorkoutTemplate['accent']>,
-  { label: string; dot: string; border: string; pill: string }
+  { label: string; dot: string; border: string; pill: string; bar: string; glow: string }
 > = {
   cyan: {
     label: 'Cyan',
     dot: 'bg-cyan-400',
-    border: 'border-cyan-500/40',
+    border: 'border-cyan-500/30 dark:border-cyan-400/20',
     pill: 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-300',
+    bar: 'from-cyan-400 via-sky-400 to-blue-500',
+    glow: 'from-cyan-500/12 to-transparent',
   },
   emerald: {
     label: 'Émeraude',
     dot: 'bg-emerald-400',
-    border: 'border-emerald-500/40',
+    border: 'border-emerald-500/30 dark:border-emerald-400/20',
     pill: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300',
+    bar: 'from-emerald-400 via-teal-400 to-cyan-400',
+    glow: 'from-emerald-500/12 to-transparent',
   },
   amber: {
     label: 'Ambre',
     dot: 'bg-amber-400',
-    border: 'border-amber-500/40',
+    border: 'border-amber-500/30 dark:border-amber-400/20',
     pill: 'bg-amber-500/15 text-amber-600 dark:text-amber-300',
+    bar: 'from-amber-400 via-orange-400 to-rose-400',
+    glow: 'from-amber-500/12 to-transparent',
   },
   rose: {
     label: 'Corail',
     dot: 'bg-rose-400',
-    border: 'border-rose-500/40',
+    border: 'border-rose-500/30 dark:border-rose-400/20',
     pill: 'bg-rose-500/15 text-rose-600 dark:text-rose-300',
+    bar: 'from-rose-400 via-pink-500 to-fuchsia-500',
+    glow: 'from-rose-500/12 to-transparent',
   },
   violet: {
     label: 'Violet',
     dot: 'bg-violet-400',
-    border: 'border-violet-500/40',
+    border: 'border-violet-500/30 dark:border-violet-400/20',
     pill: 'bg-violet-500/15 text-violet-600 dark:text-violet-300',
+    bar: 'from-violet-400 via-purple-400 to-indigo-500',
+    glow: 'from-violet-500/12 to-transparent',
   },
 };

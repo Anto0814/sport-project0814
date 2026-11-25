@@ -40,6 +40,7 @@ import {
   WORKOUT_ACCENTS,
 } from '../utils/format';
 import { ProgramEditor } from './ProgramEditor';
+import { ToggleSwitch } from './ToggleSwitch';
 import { WorkoutEditor } from './WorkoutEditor';
 
 interface CalendarViewProps {
@@ -84,12 +85,10 @@ export function CalendarView({
   const [viewMonth, setViewMonth] = useState(now.getMonth());
   const [selectedDate, setSelectedDate] = useState(todayStr);
 
-  // Program editor state
   const [editingProgram, setEditingProgram] = useState<WorkoutProgram | null | undefined>(
     undefined
   );
 
-  // Per-day workout customization state
   const [customizingDayContext, setCustomizingDayContext] = useState<{
     date: string;
     existingPlannedId?: string;
@@ -207,7 +206,6 @@ export function CalendarView({
     skippedOverrides.forEach((p) => onDeletePlannedWorkout(p.id));
   };
 
-  // Nested ProgramEditor
   if (editingProgram !== undefined) {
     return (
       <ProgramEditor
@@ -225,7 +223,6 @@ export function CalendarView({
     );
   }
 
-  // Nested WorkoutEditor for customizing a single day on the calendar
   if (customizingDayContext) {
     return (
       <WorkoutEditor
@@ -258,50 +255,50 @@ export function CalendarView({
 
   return (
     <div className="space-y-6">
-      {/* Header + Sub-tabs */}
+      {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+          <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
             Calendrier &amp; Programmes
           </h1>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-            Visualise tes séances passées, planifie le futur et configure des cycles ou semaines types.
+            Visualise tes séances passées, planifie tes futures sorties et gère tes cycles répétables.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             type="button"
             onClick={onOpenImportRun}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-500/20 dark:text-emerald-300"
+            className="btn-secondary px-3.5 py-2.5 text-xs"
           >
-            <FileUp className="h-3.5 w-3.5" />
+            <FileUp className="h-3.5 w-3.5 text-emerald-500" />
             Importer GPX / FIT
           </button>
 
-          <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 dark:border-slate-800 dark:bg-slate-900">
+          <div className="inline-flex rounded-2xl border border-slate-200/90 bg-white p-1 dark:border-white/[0.08] dark:bg-[#0d121c]">
             <button
               type="button"
               onClick={() => setSubTab('calendar')}
-              className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold transition ${
+              className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
                 subTab === 'calendar'
-                  ? 'bg-cyan-500 text-slate-950'
+                  ? 'bg-gradient-to-r from-cyan-400 to-emerald-400 text-slate-950 shadow-sm'
                   : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
               }`}
             >
-              <CalendarDays className="h-4 w-4" />
+              <CalendarDays className="h-3.5 w-3.5" />
               Calendrier
             </button>
             <button
               type="button"
               onClick={() => setSubTab('programs')}
-              className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold transition ${
+              className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
                 subTab === 'programs'
-                  ? 'bg-cyan-500 text-slate-950'
+                  ? 'bg-gradient-to-r from-cyan-400 to-emerald-400 text-slate-950 shadow-sm'
                   : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
               }`}
             >
-              <Repeat className="h-4 w-4" />
+              <Repeat className="h-3.5 w-3.5" />
               Programmes ({activeProgramsCount})
             </button>
           </div>
@@ -310,34 +307,38 @@ export function CalendarView({
 
       {subTab === 'programs' ? (
         <div className="space-y-5">
-          <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-5 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800 dark:bg-slate-900">
+          <div className="surface-card flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-base font-bold">Programmes répétables</h2>
+              <h2 className="font-display text-lg font-bold">Programmes répétables</h2>
               <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                Crée un cycle (ex : 1 jour sur 2) ou une semaine type (Lundi → Dimanche) avec des séances personnalisables.
+                Rythme en cycle (1 jour sur 2, 2 ON / 1 OFF…) ou semaine type (Lundi → Dimanche) personnalisable.
               </p>
             </div>
             <button
               type="button"
               onClick={() => setEditingProgram(null)}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-500 px-4 py-2.5 text-sm font-semibold text-slate-950 shadow-md shadow-cyan-500/20 hover:bg-cyan-400"
+              className="btn-primary px-4 py-2.5 text-sm"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-4 w-4 stroke-[2.5]" />
               Nouveau programme
             </button>
           </div>
 
           {programs.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-white/60 p-10 text-center dark:border-slate-800 dark:bg-slate-900/40">
-              <Repeat className="mx-auto h-10 w-10 text-slate-400" />
-              <h3 className="mt-3 text-lg font-semibold">Aucun programme créé</h3>
+            <div className="surface-card border-dashed p-12 text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 dark:bg-white/[0.05]">
+                <Repeat className="h-7 w-7" />
+              </div>
+              <h3 className="font-display mt-4 text-xl font-bold">
+                Aucun programme créé
+              </h3>
               <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                Configure un cycle (1 jour sur 2, 2 ON / 1 OFF…) ou une semaine type répétitive pour remplir automatiquement ton calendrier.
+                Crée un cycle ou une semaine type pour projeter automatiquement tes séances sur le calendrier.
               </p>
               <button
                 type="button"
                 onClick={() => setEditingProgram(null)}
-                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-cyan-500 px-4 py-2.5 text-sm font-semibold text-slate-950 hover:bg-cyan-400"
+                className="btn-primary mt-5 px-5 py-2.5 text-sm"
               >
                 <Plus className="h-4 w-4" />
                 Créer mon premier programme
@@ -350,12 +351,13 @@ export function CalendarView({
                 return (
                   <article
                     key={prog.id}
-                    className={`flex flex-col justify-between rounded-2xl border p-5 transition ${
-                      prog.isActive
-                        ? 'border-cyan-500/50 bg-white shadow-sm dark:bg-slate-900'
-                        : 'border-slate-200 bg-white/70 opacity-80 dark:border-slate-800 dark:bg-slate-900/60'
+                    className={`surface-card relative flex flex-col justify-between overflow-hidden p-5 ${
+                      prog.isActive ? 'border-cyan-500/35' : 'opacity-75'
                     }`}
                   >
+                    {prog.isActive && (
+                      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-cyan-400 to-emerald-400" />
+                    )}
                     <div>
                       <div className="flex items-start justify-between gap-3">
                         <div>
@@ -364,26 +366,26 @@ export function CalendarView({
                               className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
                                 prog.isActive
                                   ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300'
-                                  : 'bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                                  : 'bg-slate-200 text-slate-600 dark:bg-white/10 dark:text-slate-400'
                               }`}
                             >
                               {prog.isActive ? 'Actif' : 'En pause'}
                             </span>
-                            <span className="rounded-full bg-cyan-500/15 px-2.5 py-0.5 text-[11px] font-semibold text-cyan-700 dark:text-cyan-300">
+                            <span className="rounded-full bg-cyan-500/15 px-2.5 py-0.5 text-[11px] font-bold text-cyan-700 dark:text-cyan-300">
                               {prog.type === 'weekly'
                                 ? 'Semaine type'
                                 : `Cycle ${prog.slots.length} jours`}
                             </span>
                           </div>
-                          <h3 className="mt-2 text-lg font-bold">{prog.name}</h3>
+                          <h3 className="font-display mt-2.5 text-lg font-bold">
+                            {prog.name}
+                          </h3>
                         </div>
 
-                        <input
-                          type="checkbox"
+                        <ToggleSwitch
                           checked={prog.isActive}
                           onChange={() => onToggleProgramActive(prog.id)}
-                          title="Activer / désactiver sur le calendrier"
-                          className="h-5 w-5 accent-cyan-500"
+                          ariaLabel="Activer le programme"
                         />
                       </div>
 
@@ -398,10 +400,10 @@ export function CalendarView({
                         {prog.slots.map((slot, idx) => (
                           <span
                             key={slot.id}
-                            className={`rounded-lg px-2 py-1 text-[11px] font-medium ${
+                            className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold ${
                               slot.workout
-                                ? 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200'
-                                : 'border border-dashed border-slate-300 text-slate-400 dark:border-slate-700'
+                                ? 'bg-slate-100 text-slate-800 dark:bg-white/[0.06] dark:text-slate-200'
+                                : 'border border-dashed border-slate-300 text-slate-400 dark:border-white/10'
                             }`}
                           >
                             {prog.type === 'weekly'
@@ -413,11 +415,11 @@ export function CalendarView({
                       </div>
                     </div>
 
-                    <div className="mt-5 flex items-center justify-end gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
+                    <div className="mt-5 flex items-center justify-end gap-2 border-t border-slate-100 pt-3.5 dark:border-white/[0.06]">
                       <button
                         type="button"
                         onClick={() => setEditingProgram(prog)}
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold hover:bg-slate-100 dark:border-slate-800 dark:hover:bg-slate-800"
+                        className="btn-secondary px-3.5 py-2 text-xs"
                       >
                         <Pencil className="h-3.5 w-3.5" />
                         Modifier / Personnaliser
@@ -425,7 +427,7 @@ export function CalendarView({
                       <button
                         type="button"
                         onClick={() => onDeleteProgram(prog.id)}
-                        className="rounded-xl border border-slate-200 p-2 text-slate-400 hover:border-rose-500/40 hover:bg-rose-500/10 hover:text-rose-500 dark:border-slate-800"
+                        className="rounded-xl border border-slate-200 bg-white p-2 text-slate-400 transition hover:border-rose-500/40 hover:bg-rose-500/10 hover:text-rose-500 dark:border-white/10 dark:bg-white/[0.04]"
                         title="Supprimer le programme"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -438,26 +440,26 @@ export function CalendarView({
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_380px]">
-          {/* Monthly calendar grid */}
-          <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 dark:border-slate-800 dark:bg-slate-900">
-            <div className="mb-4 flex items-center justify-between gap-2">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_385px]">
+          {/* Monthly calendar */}
+          <section className="surface-card p-4 sm:p-6">
+            <div className="mb-5 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={goPrevMonth}
-                  className="rounded-xl border border-slate-200 p-2 hover:bg-slate-100 dark:border-slate-800 dark:hover:bg-slate-800"
+                  className="btn-secondary p-2"
                   aria-label="Mois précédent"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
-                <h2 className="min-w-[160px] text-center text-base font-bold capitalize sm:text-lg">
+                <h2 className="font-display min-w-[165px] text-center text-lg font-bold capitalize sm:text-xl">
                   {formatMonthYearFr(viewYear, viewMonth)}
                 </h2>
                 <button
                   type="button"
                   onClick={goNextMonth}
-                  className="rounded-xl border border-slate-200 p-2 hover:bg-slate-100 dark:border-slate-800 dark:hover:bg-slate-800"
+                  className="btn-secondary p-2"
                   aria-label="Mois suivant"
                 >
                   <ChevronRight className="h-4 w-4" />
@@ -467,14 +469,13 @@ export function CalendarView({
               <button
                 type="button"
                 onClick={goToday}
-                className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold hover:bg-slate-100 dark:border-slate-800 dark:hover:bg-slate-800"
+                className="btn-secondary px-3.5 py-1.5 text-xs"
               >
                 Aujourd&apos;hui
               </button>
             </div>
 
-            {/* Weekday headers */}
-            <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <div className="grid grid-cols-7 gap-1.5 text-center text-[11px] font-bold uppercase tracking-wider text-slate-400">
               {WEEKDAY_NAMES_SHORT.map((d) => (
                 <div key={d} className="py-2">
                   {d}
@@ -482,8 +483,7 @@ export function CalendarView({
               ))}
             </div>
 
-            {/* Day cells */}
-            <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
+            <div className="grid grid-cols-7 gap-1.5">
               {monthCells.map((cell) => {
                 const summary = daySummaries.get(cell.dateStr);
                 const completedCount = summary?.completedLogs.length ?? 0;
@@ -496,18 +496,18 @@ export function CalendarView({
                     key={cell.dateStr}
                     type="button"
                     onClick={() => setSelectedDate(cell.dateStr)}
-                    className={`flex min-h-[58px] flex-col items-start justify-between rounded-xl border p-1.5 text-left transition sm:min-h-[82px] sm:p-2 ${
+                    className={`flex min-h-[60px] flex-col items-start justify-between rounded-2xl border p-1.5 text-left transition-all sm:min-h-[86px] sm:p-2 ${
                       isSelected
-                        ? 'border-cyan-500 bg-cyan-500/10 ring-2 ring-cyan-500/30'
+                        ? 'border-cyan-400 bg-cyan-500/12 ring-2 ring-cyan-400/25'
                         : isToday
-                          ? 'border-emerald-500/50 bg-emerald-500/5'
-                          : 'border-slate-100 hover:bg-slate-50 dark:border-slate-800/80 dark:hover:bg-slate-800/40'
-                    } ${!cell.isCurrentMonth ? 'opacity-40' : ''}`}
+                          ? 'border-emerald-400/50 bg-emerald-500/8'
+                          : 'border-slate-100 bg-slate-50/40 hover:border-slate-300 dark:border-white/[0.05] dark:bg-white/[0.015] dark:hover:border-white/15'
+                    } ${!cell.isCurrentMonth ? 'opacity-35' : ''}`}
                   >
                     <span
                       className={`inline-flex h-6 w-6 items-center justify-center rounded-lg text-xs font-bold tabular-nums ${
                         isToday
-                          ? 'bg-emerald-500 text-slate-950'
+                          ? 'bg-gradient-to-br from-emerald-400 to-cyan-400 text-slate-950 shadow-sm'
                           : isSelected
                             ? 'text-cyan-600 dark:text-cyan-300'
                             : ''
@@ -519,19 +519,19 @@ export function CalendarView({
                     {/* Mobile dots */}
                     <div className="flex flex-wrap gap-1 sm:hidden">
                       {completedCount > 0 && (
-                        <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                        <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]" />
                       )}
                       {scheduledCount > 0 && (
-                        <span className="h-2 w-2 rounded-full bg-cyan-500" />
+                        <span className="h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_6px_#22d3ee]" />
                       )}
                     </div>
 
-                    {/* Desktop compact labels */}
-                    <div className="hidden w-full space-y-0.5 sm:block">
+                    {/* Desktop pills */}
+                    <div className="hidden w-full space-y-1 sm:block">
                       {summary?.completedLogs.slice(0, 1).map((log) => (
                         <div
                           key={log.id}
-                          className="truncate rounded bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-300"
+                          className="truncate rounded-md bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-300"
                         >
                           ✓ {log.workoutName}
                         </div>
@@ -539,7 +539,7 @@ export function CalendarView({
                       {summary?.scheduledItems.slice(0, 2).map((item) => (
                         <div
                           key={item.key}
-                          className={`truncate rounded px-1.5 py-0.5 text-[10px] font-semibold ${
+                          className={`truncate rounded-md px-1.5 py-0.5 text-[10px] font-bold ${
                             item.origin === 'program_override'
                               ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300'
                               : 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300'
@@ -549,7 +549,7 @@ export function CalendarView({
                         </div>
                       ))}
                       {completedCount + scheduledCount > 2 && (
-                        <div className="text-[10px] font-medium text-slate-400">
+                        <div className="text-[10px] font-semibold text-slate-400">
                           +{completedCount + scheduledCount - 2}
                         </div>
                       )}
@@ -559,56 +559,54 @@ export function CalendarView({
               })}
             </div>
 
-            {/* Legend */}
-            <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-slate-100 pt-3 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
+            <div className="mt-5 flex flex-wrap items-center gap-4 border-t border-slate-100 pt-3.5 text-xs font-medium text-slate-500 dark:border-white/[0.06] dark:text-slate-400">
               <span className="inline-flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
-                Séance effectuée
+                <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+                Effectuée
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-full bg-cyan-500" />
-                Séance planifiée / Programme
+                <span className="h-2.5 w-2.5 rounded-full bg-cyan-400" />
+                Planifiée / Programme
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
-                Modifiée pour ce jour
+                <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+                Personnalisée ce jour
               </span>
             </div>
           </section>
 
-          {/* Selected Day Inspector */}
+          {/* Day Inspector */}
           <aside className="space-y-4">
-            <div className="sticky top-6 space-y-4 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <div className="surface-card sticky top-6 space-y-5 p-5">
               <div>
-                <div className="text-xs font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400">
+                <div className="text-[11px] font-extrabold uppercase tracking-widest text-cyan-600 dark:text-cyan-400">
                   {selectedDate === todayStr ? "Aujourd'hui" : 'Jour sélectionné'}
                 </div>
-                <h3 className="mt-0.5 text-lg font-bold capitalize">
+                <h3 className="font-display mt-0.5 text-xl font-bold capitalize">
                   {formatLongDateFr(selectedDate)}
                 </h3>
               </div>
 
-              {/* Completed workouts on this date */}
               {selectedSummary.completedLogs.length > 0 && (
                 <div className="space-y-2">
-                  <div className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
                     Effectuée(s)
                   </div>
                   {selectedSummary.completedLogs.map((log) => (
                     <div
                       key={log.id}
-                      className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3"
+                      className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-3.5"
                     >
                       <div className="flex items-center justify-between gap-2">
                         <span className="inline-flex items-center gap-1.5 text-sm font-bold text-emerald-800 dark:text-emerald-200">
                           <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                           {log.workoutName}
                         </span>
-                        <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                        <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">
                           {formatDuration(log.durationSec)}
                         </span>
                       </div>
-                      <div className="mt-1 text-xs text-emerald-700/80 dark:text-emerald-300/80">
+                      <div className="mt-1 text-xs font-medium text-emerald-700/80 dark:text-emerald-300/80">
                         {log.runStats ? (
                           <>
                             {log.runStats.distanceKm.toFixed(2)} km ·{' '}
@@ -619,8 +617,8 @@ export function CalendarView({
                           </>
                         ) : (
                           <>
-                            {log.totalSetsCompleted} série{log.totalSetsCompleted > 1 ? 's' : ''} validée
-                            {log.totalSetsCompleted > 1 ? 's' : ''}
+                            {log.totalSetsCompleted} série{log.totalSetsCompleted > 1 ? 's' : ''}{' '}
+                            validée{log.totalSetsCompleted > 1 ? 's' : ''}
                           </>
                         )}
                       </div>
@@ -629,57 +627,52 @@ export function CalendarView({
                 </div>
               )}
 
-              {/* Scheduled workouts on this date */}
               <div className="space-y-2.5">
-                <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   Au programme
                 </div>
 
                 {selectedSummary.scheduledItems.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-slate-200 p-4 text-center dark:border-slate-800">
+                  <div className="surface-inset border-dashed p-5 text-center">
                     <Coffee className="mx-auto h-6 w-6 text-slate-400" />
                     <p className="mt-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
                       {selectedSummary.hasSkippedProgramRest
                         ? 'Passé en jour de repos pour cette date.'
-                        : 'Aucune séance prévue pour ce jour.'}
+                        : 'Aucune séance prévue ce jour.'}
                     </p>
                     {selectedSummary.hasSkippedProgramRest && (
                       <button
                         type="button"
                         onClick={handleRestoreSkippedPrograms}
-                        className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-cyan-600 hover:underline dark:text-cyan-400"
+                        className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-cyan-600 hover:underline dark:text-cyan-400"
                       >
                         <RotateCcw className="h-3.5 w-3.5" />
-                        Rétablir la séance du programme
+                        Rétablir le programme
                       </button>
                     )}
                   </div>
                 ) : (
                   selectedSummary.scheduledItems.map((item) => {
                     const accent = WORKOUT_ACCENTS[item.workout.accent ?? 'cyan'];
-                    const estSec = estimateWorkoutDurationSec(
-                      item.workout,
-                      exerciseMap
-                    );
+                    const estSec = estimateWorkoutDurationSec(item.workout, exerciseMap);
                     return (
                       <div
                         key={item.key}
-                        className={`rounded-2xl border p-4 ${accent.border} bg-slate-50/70 dark:bg-slate-950/70`}
+                        className={`surface-inset relative overflow-hidden p-4 ${accent.border}`}
                       >
-                        <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <span className="inline-block rounded-full bg-slate-200/80 px-2 py-0.5 text-[10px] font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                              {item.origin === 'manual'
-                                ? 'Planifiée'
-                                : item.origin === 'program_override'
-                                  ? `Personnalisée (${item.programName})`
-                                  : `${item.programName} · ${item.slotLabel}`}
-                            </span>
-                            <h4 className="mt-1.5 font-bold">{item.workout.name}</h4>
-                          </div>
-                        </div>
+                        <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${accent.bar}`} />
+                        <span className="inline-block rounded-full bg-slate-200/80 px-2.5 py-0.5 text-[10px] font-bold text-slate-700 dark:bg-white/[0.08] dark:text-slate-300">
+                          {item.origin === 'manual'
+                            ? 'Planifiée'
+                            : item.origin === 'program_override'
+                              ? `Personnalisée (${item.programName})`
+                              : `${item.programName} · ${item.slotLabel}`}
+                        </span>
+                        <h4 className="font-display mt-2 text-base font-bold">
+                          {item.workout.name}
+                        </h4>
 
-                        <div className="mt-2 flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                        <div className="mt-1.5 flex items-center gap-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">
                           {item.workout.discipline === 'running' ? (
                             <span>
                               Running
@@ -699,7 +692,7 @@ export function CalendarView({
                           </span>
                         </div>
 
-                        <div className="mt-3 flex flex-wrap gap-2">
+                        <div className="mt-3.5 flex flex-wrap gap-2">
                           <button
                             type="button"
                             disabled={
@@ -707,7 +700,7 @@ export function CalendarView({
                               item.workout.exercises.length === 0
                             }
                             onClick={() => onStartWorkout(item.workout)}
-                            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-emerald-500 px-3 py-2 text-xs font-bold text-slate-950 hover:bg-emerald-400 disabled:opacity-50"
+                            className="btn-primary flex-1 px-3 py-2 text-xs"
                           >
                             <Play className="h-3.5 w-3.5 fill-current" />
                             Lancer
@@ -716,8 +709,7 @@ export function CalendarView({
                           <button
                             type="button"
                             onClick={() => handleCustomizeScheduledItem(item)}
-                            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800"
-                            title="Personnaliser cette séance uniquement pour ce jour"
+                            className="btn-secondary px-3 py-2 text-xs"
                           >
                             <Pencil className="h-3.5 w-3.5" />
                             Personnaliser
@@ -726,7 +718,7 @@ export function CalendarView({
                           <button
                             type="button"
                             onClick={() => handleSkipOrDeleteItem(item)}
-                            className="rounded-xl border border-slate-200 bg-white p-2 text-slate-400 hover:border-rose-500/40 hover:text-rose-500 dark:border-slate-800 dark:bg-slate-900"
+                            className="rounded-xl border border-slate-200 bg-white p-2 text-slate-400 transition hover:border-rose-500/40 hover:text-rose-500 dark:border-white/10 dark:bg-white/[0.04]"
                             title={
                               item.origin === 'manual'
                                 ? 'Retirer du calendrier'
@@ -742,15 +734,14 @@ export function CalendarView({
                 )}
               </div>
 
-              {/* Add a workout to this specific date */}
-              <div className="border-t border-slate-100 pt-4 dark:border-slate-800">
-                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <div className="border-t border-slate-100 pt-4 dark:border-white/[0.06]">
+                <label className="mb-2 block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   Planifier une séance ce jour
                 </label>
                 <select
                   value=""
                   onChange={(e) => handleScheduleTemplate(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-semibold outline-none focus:border-cyan-500 dark:border-slate-800 dark:bg-slate-950"
+                  className="input-field text-xs font-semibold"
                 >
                   <option value="">+ Choisir ou créer une séance...</option>
                   {workouts.map((w) => (
