@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   ArrowDown,
   ArrowLeft,
@@ -967,34 +968,58 @@ export function WorkoutEditor({
                           ))}
                         </div>
 
-                        {/* Rest timers */}
-                        <div className="mt-4 grid grid-cols-1 gap-3 border-t border-slate-100 pt-4 xl:grid-cols-2 dark:border-white/[0.06]">
-                          <div className="surface-inset p-3.5">
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-cyan-600 dark:text-cyan-400">
-                                <Clock className="h-3.5 w-3.5" />
+                        {/* Harmonized full-width rest rows matching the set rows above */}
+                        <div className="mt-4 space-y-2 border-t border-slate-100 pt-4 dark:border-white/[0.06]">
+                          {/* Rest between sets */}
+                          <div className="surface-inset px-3.5 py-2.5">
+                            <div className="flex flex-wrap items-center justify-between gap-2.5">
+                              <span className="inline-flex items-center gap-2 text-xs font-bold text-cyan-600 dark:text-cyan-400">
+                                <Clock className="h-3.5 w-3.5 shrink-0" />
                                 Repos entre séries
                               </span>
-                              <span className="font-display text-sm font-bold tabular-nums">
-                                {formatDuration(item.restBetweenSetsSec)}
-                              </span>
+
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    updateItem(item.id, (cur) => ({
+                                      ...cur,
+                                      restBetweenSetsSec: Math.max(
+                                        0,
+                                        cur.restBetweenSetsSec - 15
+                                      ),
+                                    }))
+                                  }
+                                  className="btn-secondary h-8 w-8 rounded-lg"
+                                  aria-label="Retirer 15 secondes de repos entre séries"
+                                  title="-15s"
+                                >
+                                  <Minus className="h-3.5 w-3.5" />
+                                </button>
+                                <span className="font-display flex h-8 min-w-[74px] items-center justify-center rounded-lg border border-slate-200 bg-white px-2.5 text-sm font-bold tabular-nums dark:border-white/10 dark:bg-[#0d121c]">
+                                  {formatDuration(item.restBetweenSetsSec)}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    updateItem(item.id, (cur) => ({
+                                      ...cur,
+                                      restBetweenSetsSec: Math.min(
+                                        600,
+                                        cur.restBetweenSetsSec + 15
+                                      ),
+                                    }))
+                                  }
+                                  className="btn-secondary h-8 w-8 rounded-lg"
+                                  aria-label="Ajouter 15 secondes de repos entre séries"
+                                  title="+15s"
+                                >
+                                  <Plus className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
                             </div>
-                            <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  updateItem(item.id, (cur) => ({
-                                    ...cur,
-                                    restBetweenSetsSec: Math.max(
-                                      0,
-                                      cur.restBetweenSetsSec - 15
-                                    ),
-                                  }))
-                                }
-                                className="btn-secondary rounded-lg px-2 py-1 text-xs"
-                              >
-                                -15s
-                              </button>
+
+                            <div className="mt-2 flex flex-wrap items-center gap-1.5">
                               {REST_SET_PRESETS.map((sec) => (
                                 <button
                                   key={sec}
@@ -1005,65 +1030,74 @@ export function WorkoutEditor({
                                       restBetweenSetsSec: sec,
                                     }))
                                   }
-                                  className={`rounded-lg px-2 py-1 text-xs font-bold transition ${
+                                  className={`rounded-lg px-2.5 py-1 text-[11px] font-bold transition ${
                                     item.restBetweenSetsSec === sec
-                                      ? 'bg-cyan-400 text-slate-950'
-                                      : 'bg-slate-200/70 text-slate-700 dark:bg-white/[0.07] dark:text-slate-300'
+                                      ? 'bg-cyan-400 text-slate-950 shadow-xs'
+                                      : 'bg-slate-200/70 text-slate-600 hover:bg-slate-200 dark:bg-white/[0.06] dark:text-slate-400 dark:hover:bg-white/[0.1]'
                                   }`}
                                 >
                                   {formatDuration(sec)}
                                 </button>
                               ))}
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  updateItem(item.id, (cur) => ({
-                                    ...cur,
-                                    restBetweenSetsSec: Math.min(
-                                      600,
-                                      cur.restBetweenSetsSec + 15
-                                    ),
-                                  }))
-                                }
-                                className="btn-secondary rounded-lg px-2 py-1 text-xs"
-                              >
-                                +15s
-                              </button>
                             </div>
                           </div>
 
+                          {/* Rest between exercises */}
                           <div
-                            className={`surface-inset p-3.5 ${
+                            className={`surface-inset px-3.5 py-2.5 ${
                               isLastExercise ? 'opacity-55' : ''
                             }`}
                           >
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-600 dark:text-amber-400">
-                                <Clock className="h-3.5 w-3.5" />
+                            <div className="flex flex-wrap items-center justify-between gap-2.5">
+                              <span className="inline-flex items-center gap-2 text-xs font-bold text-amber-600 dark:text-amber-400">
+                                <Clock className="h-3.5 w-3.5 shrink-0" />
                                 {isLastExercise
                                   ? 'Repos fin de séance'
                                   : 'Repos avant exo suivant'}
                               </span>
-                              <span className="font-display text-sm font-bold tabular-nums">
-                                {formatDuration(item.restAfterExerciseSec)}
-                              </span>
+
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    updateItem(item.id, (cur) => ({
+                                      ...cur,
+                                      restAfterExerciseSec: Math.max(
+                                        0,
+                                        cur.restAfterExerciseSec - 15
+                                      ),
+                                    }))
+                                  }
+                                  className="btn-secondary h-8 w-8 rounded-lg"
+                                  aria-label="Retirer 15 secondes de repos avant exercice suivant"
+                                  title="-15s"
+                                >
+                                  <Minus className="h-3.5 w-3.5" />
+                                </button>
+                                <span className="font-display flex h-8 min-w-[74px] items-center justify-center rounded-lg border border-slate-200 bg-white px-2.5 text-sm font-bold tabular-nums dark:border-white/10 dark:bg-[#0d121c]">
+                                  {formatDuration(item.restAfterExerciseSec)}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    updateItem(item.id, (cur) => ({
+                                      ...cur,
+                                      restAfterExerciseSec: Math.min(
+                                        900,
+                                        cur.restAfterExerciseSec + 15
+                                      ),
+                                    }))
+                                  }
+                                  className="btn-secondary h-8 w-8 rounded-lg"
+                                  aria-label="Ajouter 15 secondes de repos avant exercice suivant"
+                                  title="+15s"
+                                >
+                                  <Plus className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
                             </div>
-                            <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  updateItem(item.id, (cur) => ({
-                                    ...cur,
-                                    restAfterExerciseSec: Math.max(
-                                      0,
-                                      cur.restAfterExerciseSec - 15
-                                    ),
-                                  }))
-                                }
-                                className="btn-secondary rounded-lg px-2 py-1 text-xs"
-                              >
-                                -15s
-                              </button>
+
+                            <div className="mt-2 flex flex-wrap items-center gap-1.5">
                               {REST_EXO_PRESETS.map((sec) => (
                                 <button
                                   key={sec}
@@ -1074,30 +1108,15 @@ export function WorkoutEditor({
                                       restAfterExerciseSec: sec,
                                     }))
                                   }
-                                  className={`rounded-lg px-2 py-1 text-xs font-bold transition ${
+                                  className={`rounded-lg px-2.5 py-1 text-[11px] font-bold transition ${
                                     item.restAfterExerciseSec === sec
-                                      ? 'bg-amber-400 text-slate-950'
-                                      : 'bg-slate-200/70 text-slate-700 dark:bg-white/[0.07] dark:text-slate-300'
+                                      ? 'bg-amber-400 text-slate-950 shadow-xs'
+                                      : 'bg-slate-200/70 text-slate-600 hover:bg-slate-200 dark:bg-white/[0.06] dark:text-slate-400 dark:hover:bg-white/[0.1]'
                                   }`}
                                 >
                                   {formatDuration(sec)}
                                 </button>
                               ))}
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  updateItem(item.id, (cur) => ({
-                                    ...cur,
-                                    restAfterExerciseSec: Math.min(
-                                      900,
-                                      cur.restAfterExerciseSec + 15
-                                    ),
-                                  }))
-                                }
-                                className="btn-secondary rounded-lg px-2 py-1 text-xs"
-                              >
-                                +15s
-                              </button>
                             </div>
                           </div>
                         </div>
@@ -1132,144 +1151,154 @@ export function WorkoutEditor({
         )}
       </div>
 
-      {/* Mobile slide-up exercise picker */}
-      {discipline === 'street_workout' && pickerOpenMobile && (
-        <div className="fixed inset-0 z-40 flex items-end bg-black/75 backdrop-blur-sm lg:hidden">
-          <div className="surface-card max-h-[85vh] w-full overflow-y-auto rounded-t-3xl p-5 pb-safe">
-            <div className="mb-3 flex items-center justify-between">
-              <span className="font-display text-base font-bold">
-                Choisir un exercice
-              </span>
+      {/* Mobile slide-up exercise picker (Portaled to body) */}
+      {discipline === 'street_workout' &&
+        pickerOpenMobile &&
+        createPortal(
+          <div className="fixed inset-0 z-40 flex items-end bg-black/75 backdrop-blur-sm lg:hidden">
+            <div className="surface-card max-h-[85vh] w-full overflow-y-auto rounded-t-3xl p-5 pb-safe">
+              <div className="mb-3 flex items-center justify-between">
+                <span className="font-display text-base font-bold">
+                  Choisir un exercice
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPickerOpenMobile(false)}
+                  className="btn-secondary p-2"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              {pickerPanel}
               <button
                 type="button"
                 onClick={() => setPickerOpenMobile(false)}
-                className="btn-secondary p-2"
+                className="btn-primary mt-4 w-full py-3 text-sm"
               >
-                <X className="h-4 w-4" />
+                <Check className="h-4 w-4" />
+                Terminer
               </button>
             </div>
-            {pickerPanel}
-            <button
-              type="button"
-              onClick={() => setPickerOpenMobile(false)}
-              className="btn-primary mt-4 w-full py-3 text-sm"
-            >
-              <Check className="h-4 w-4" />
-              Terminer
-            </button>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
 
-      {/* Variant choice modal (for ALL exercises: sans précision, preset variant, or custom variant) */}
-      {variantModal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/75 p-0 backdrop-blur-sm sm:items-center sm:p-4">
-          <div className="surface-card w-full max-w-md rounded-t-3xl p-5 pb-safe sm:rounded-3xl sm:p-6 animate-view-in">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400">
-                  {variantModal.editingItemId
-                    ? 'Modifier la variante'
-                    : 'Ajouter à la séance'}
-                </span>
-                <h3 className="font-display mt-0.5 text-xl font-bold">
-                  {variantModal.exercise.name}
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setVariantModal(null)}
-                className="btn-secondary p-2"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <div className="mt-4 space-y-4">
-              {/* Option 1: Sans précision */}
-              <button
-                type="button"
-                onClick={() => confirmVariantChoice(undefined)}
-                className={`flex w-full items-center justify-between rounded-2xl border p-3.5 text-left transition ${
-                  !variantModal.currentVariant && variantModal.editingItemId
-                    ? 'border-cyan-400 bg-cyan-500/15'
-                    : 'border-cyan-500/35 bg-cyan-500/10 hover:bg-cyan-500/20'
-                }`}
-              >
+      {/* Variant choice modal (Portaled to body so it's always centered in full viewport) */}
+      {variantModal &&
+        createPortal(
+          <div
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setVariantModal(null);
+            }}
+            className="fixed inset-0 z-50 flex items-end justify-center bg-black/75 p-0 backdrop-blur-sm sm:items-center sm:p-4"
+          >
+            <div className="surface-card max-h-[90vh] w-full max-w-md overflow-y-auto rounded-t-3xl p-5 pb-safe sm:rounded-3xl sm:p-6 animate-view-in">
+              <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="text-sm font-bold text-cyan-700 dark:text-cyan-300">
-                    {variantModal.exercise.name} (sans précision)
-                  </div>
-                  <div className="text-[11px] text-slate-500 dark:text-slate-400">
-                    Ajouter directement l&apos;exercice générique
-                  </div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400">
+                    {variantModal.editingItemId
+                      ? 'Modifier la variante'
+                      : 'Ajouter à la séance'}
+                  </span>
+                  <h3 className="font-display mt-0.5 text-xl font-bold">
+                    {variantModal.exercise.name}
+                  </h3>
                 </div>
-                <Plus className="h-4 w-4 shrink-0 text-cyan-500" />
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setVariantModal(null)}
+                  className="btn-secondary p-2"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
 
-              {/* Option 2: Preset variants */}
-              {variantModal.exercise.variants &&
-                variantModal.exercise.variants.length > 0 && (
+              <div className="mt-4 space-y-4">
+                {/* Option 1: Sans précision */}
+                <button
+                  type="button"
+                  onClick={() => confirmVariantChoice(undefined)}
+                  className={`flex w-full items-center justify-between rounded-2xl border p-3.5 text-left transition ${
+                    !variantModal.currentVariant && variantModal.editingItemId
+                      ? 'border-cyan-400 bg-cyan-500/15'
+                      : 'border-cyan-500/35 bg-cyan-500/10 hover:bg-cyan-500/20'
+                  }`}
+                >
                   <div>
-                    <div className="mb-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                      Ou choisir un type particulier
+                    <div className="text-sm font-bold text-cyan-700 dark:text-cyan-300">
+                      {variantModal.exercise.name} (sans précision)
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      {variantModal.exercise.variants.map((v) => {
-                        const isSelected = variantModal.currentVariant === v;
-                        return (
-                          <button
-                            key={v}
-                            type="button"
-                            onClick={() => confirmVariantChoice(v)}
-                            className={`rounded-xl border px-3 py-2 text-xs font-bold transition ${
-                              isSelected
-                                ? 'border-emerald-400 bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
-                                : 'border-slate-200 bg-slate-50 hover:border-cyan-400 hover:bg-cyan-500/10 dark:border-white/10 dark:bg-white/[0.04]'
-                            }`}
-                          >
-                            {v}
-                          </button>
-                        );
-                      })}
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Ajouter directement l&apos;exercice générique
                     </div>
                   </div>
-                )}
+                  <Plus className="h-4 w-4 shrink-0 text-cyan-500" />
+                </button>
 
-              {/* Option 3: Custom free-text variant */}
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (customVariantInput.trim()) {
-                    confirmVariantChoice(customVariantInput.trim());
-                  }
-                }}
-                className="border-t border-slate-100 pt-4 dark:border-white/[0.06]"
-              >
-                <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                  Ou saisir une précision libre
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={customVariantInput}
-                    onChange={(e) => setCustomVariantInput(e.target.value)}
-                    placeholder="Ex : Prise neutre, Élastique rouge..."
-                    className="input-field py-2 text-xs"
-                  />
-                  <button
-                    type="submit"
-                    disabled={!customVariantInput.trim()}
-                    className="btn-primary shrink-0 px-4 py-2 text-xs"
-                  >
-                    Valider
-                  </button>
-                </div>
-              </form>
+                {/* Option 2: Preset variants */}
+                {variantModal.exercise.variants &&
+                  variantModal.exercise.variants.length > 0 && (
+                    <div>
+                      <div className="mb-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                        Ou choisir un type particulier
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {variantModal.exercise.variants.map((v) => {
+                          const isSelected = variantModal.currentVariant === v;
+                          return (
+                            <button
+                              key={v}
+                              type="button"
+                              onClick={() => confirmVariantChoice(v)}
+                              className={`rounded-xl border px-3 py-2 text-xs font-bold transition ${
+                                isSelected
+                                  ? 'border-emerald-400 bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
+                                  : 'border-slate-200 bg-slate-50 hover:border-cyan-400 hover:bg-cyan-500/10 dark:border-white/10 dark:bg-white/[0.04]'
+                              }`}
+                            >
+                              {v}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                {/* Option 3: Custom free-text variant */}
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (customVariantInput.trim()) {
+                      confirmVariantChoice(customVariantInput.trim());
+                    }
+                  }}
+                  className="border-t border-slate-100 pt-4 dark:border-white/[0.06]"
+                >
+                  <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                    Ou saisir une précision libre
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={customVariantInput}
+                      onChange={(e) => setCustomVariantInput(e.target.value)}
+                      placeholder="Ex : Prise neutre, Élastique rouge..."
+                      className="input-field py-2 text-xs"
+                    />
+                    <button
+                      type="submit"
+                      disabled={!customVariantInput.trim()}
+                      className="btn-primary shrink-0 px-4 py-2 text-xs"
+                    >
+                      Valider
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
