@@ -261,7 +261,7 @@ export function AuthScreen({ onSignIn, onSignUp }: AuthScreenProps) {
                   setUsername(e.target.value);
                   setErrorMsg('');
                 }}
-                placeholder="Ex : Anto0814"
+                placeholder="Ex : AlexFit"
                 className="input-field py-3 text-base font-semibold"
               />
             </div>
