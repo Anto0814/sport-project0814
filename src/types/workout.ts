@@ -143,13 +143,22 @@ export interface PlannedWorkout {
   workout?: WorkoutTemplate;
 }
 
+export interface UserProfile {
+  id: string;
+  username: string;
+  username_normalized: string;
+  role: 'user' | 'admin';
+  created_at: string;
+}
+
 export type AppView =
   | 'workouts'
   | 'calendar'
   | 'editor'
   | 'exercises'
   | 'history'
-  | 'settings';
+  | 'settings'
+  | 'admin';
 
 export interface AppSettings {
   theme: 'dark' | 'light';

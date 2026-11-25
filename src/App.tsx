@@ -1,16 +1,23 @@
 import { useState } from 'react';
 import {
   CalendarDays,
+  Cloud,
+  CloudOff,
   Dumbbell,
   FileUp,
   Flame,
   History,
+  Loader2,
+  LogOut,
   Moon,
   Plus,
   Settings,
+  ShieldCheck,
   Sun,
   Zap,
 } from 'lucide-react';
+import { AdminPanel } from './components/AdminPanel';
+import { AuthScreen } from './components/AuthScreen';
 import { CalendarView } from './components/CalendarView';
 import { ExerciseLibrary } from './components/ExerciseLibrary';
 import { RunImportModal } from './components/RunImportModal';
@@ -21,10 +28,11 @@ import { WorkoutHistory } from './components/WorkoutHistory';
 import { WorkoutList } from './components/WorkoutList';
 import { WorkoutPlayer } from './components/WorkoutPlayer';
 import { useAppStore } from './hooks/useAppStore';
+import { useAuth } from './hooks/useAuth';
 import { AppView, WorkoutTemplate } from './types/workout';
 
-const NAV_ITEMS: {
-  id: Exclude<AppView, 'editor'>;
+const BASE_NAV_ITEMS: {
+  id: Exclude<AppView, 'editor' | 'admin'>;
   label: string;
   shortLabel: string;
   icon: typeof Dumbbell;
@@ -37,8 +45,10 @@ const NAV_ITEMS: {
 ];
 
 export function App() {
+  const auth = useAuth();
   const {
     data,
+    syncStatus,
     exerciseMap,
     updateSettings,
     saveWorkout,
@@ -56,7 +66,7 @@ export function App() {
     exportDataJson,
     importDataJson,
     resetToDefaults,
-  } = useAppStore();
+  } = useAppStore(auth.user?.id ?? null);
 
   const [view, setView] = useState<AppView>('workouts');
   const [editingWorkout, setEditingWorkout] = useState<WorkoutTemplate | null>(null);
@@ -78,6 +88,33 @@ export function App() {
       theme: data.settings.theme === 'dark' ? 'light' : 'dark',
     });
   };
+
+  const handleSignOut = async () => {
+    setActiveWorkout(null);
+    setEditingWorkout(null);
+    setView('workouts');
+    await auth.signOut();
+  };
+
+  // Initial auth session hydration splash
+  if (auth.loading) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-4">
+        <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-cyan-400 to-emerald-400 text-slate-950 shadow-xl shadow-cyan-500/25">
+          <Zap className="h-8 w-8 fill-current" />
+        </div>
+        <div className="flex items-center gap-2 text-sm font-semibold text-slate-500">
+          <Loader2 className="h-4 w-4 animate-spin text-cyan-400" />
+          Chargement de ta session…
+        </div>
+      </div>
+    );
+  }
+
+  // Unauthenticated -> Auth Screen (Pseudo + 4-digit numeric PIN)
+  if (!auth.session) {
+    return <AuthScreen onSignIn={auth.signIn} onSignUp={auth.signUp} />;
+  }
 
   const activeProgramsCount = data.programs.filter((p) => p.isActive).length;
 
@@ -118,8 +155,23 @@ export function App() {
               <div className="font-display text-xl font-bold tracking-tight">
                 StreetFlow
               </div>
-              <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                Street Workout &amp; Running
+              <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                {syncStatus === 'syncing' ? (
+                  <>
+                    <Loader2 className="h-3 w-3 animate-spin text-cyan-400" />
+                    Synchro…
+                  </>
+                ) : syncStatus === 'error' ? (
+                  <>
+                    <CloudOff className="h-3 w-3 text-rose-400" />
+                    Hors-ligne
+                  </>
+                ) : (
+                  <>
+                    <Cloud className="h-3 w-3 text-emerald-400" />
+                    Cloud actif
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -146,7 +198,7 @@ export function App() {
 
           {/* Nav */}
           <nav className="space-y-1">
-            {NAV_ITEMS.map((item) => {
+            {BASE_NAV_ITEMS.map((item) => {
               const Icon = item.icon;
               const isActive =
                 view === item.id || (view === 'editor' && item.id === 'workouts');
@@ -197,11 +249,55 @@ export function App() {
                 </button>
               );
             })}
+
+            {/* Admin-only navigation tab */}
+            {auth.isAdmin && (
+              <button
+                type="button"
+                onClick={() => setView('admin')}
+                className={`group relative flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all duration-150 ${
+                  view === 'admin'
+                    ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/10 text-amber-700 ring-1 ring-amber-500/30 dark:text-amber-300'
+                    : 'text-amber-700/80 hover:bg-amber-500/10 dark:text-amber-400/80 dark:hover:bg-amber-500/10'
+                }`}
+              >
+                {view === 'admin' && (
+                  <span className="absolute top-2 bottom-2 left-0 w-1 rounded-r-full bg-gradient-to-b from-amber-400 to-orange-500" />
+                )}
+                <span className="flex items-center gap-3">
+                  <ShieldCheck className="h-4 w-4 text-amber-500" />
+                  Administration
+                </span>
+                <span className="rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-bold uppercase text-amber-600 dark:text-amber-300">
+                  Admin
+                </span>
+              </button>
+            )}
           </nav>
         </div>
 
-        {/* Footer theme switch */}
+        {/* Footer: Account pill + Theme switcher */}
         <div className="space-y-3 border-t border-slate-200/70 pt-4 dark:border-white/[0.06]">
+          <div className="surface-inset flex items-center justify-between gap-2 px-3 py-2">
+            <div className="min-w-0">
+              <div className="truncate text-xs font-bold">
+                {auth.profile?.username ?? 'Compte'}
+              </div>
+              <div className="text-[10px] font-semibold text-slate-500">
+                {auth.isAdmin ? 'Administrateur' : 'Connecté'}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => void handleSignOut()}
+              title="Se déconnecter"
+              aria-label="Se déconnecter"
+              className="rounded-lg p-1.5 text-slate-400 transition hover:bg-rose-500/15 hover:text-rose-500"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
+
           <div className="grid grid-cols-2 gap-1 rounded-xl border border-slate-200/80 bg-slate-100/80 p-1 dark:border-white/[0.07] dark:bg-white/[0.03]">
             <button
               type="button"
@@ -237,12 +333,32 @@ export function App() {
           <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400 to-emerald-400 text-slate-950 shadow-md shadow-cyan-500/20">
             <Zap className="h-4 w-4 fill-current" />
           </div>
-          <span className="font-display text-base font-bold tracking-tight">
-            StreetFlow
-          </span>
+          <div>
+            <div className="font-display text-sm font-bold leading-tight">
+              StreetFlow
+            </div>
+            <div className="text-[10px] font-semibold text-slate-500">
+              {auth.profile?.username}
+            </div>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          {auth.isAdmin && (
+            <button
+              type="button"
+              onClick={() => setView('admin')}
+              aria-label="Panel administrateur"
+              className={`inline-flex items-center gap-1 rounded-xl border px-2.5 py-2 text-[11px] font-bold transition ${
+                view === 'admin'
+                  ? 'border-amber-400 bg-amber-400 text-slate-950'
+                  : 'border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-300'
+              }`}
+            >
+              <ShieldCheck className="h-3.5 w-3.5" />
+              Admin
+            </button>
+          )}
           <button
             type="button"
             onClick={() => setImportRunOpen(true)}
@@ -335,19 +451,24 @@ export function App() {
           {view === 'settings' && (
             <SettingsView
               settings={data.settings}
+              profile={auth.profile}
+              syncStatus={syncStatus}
+              onSignOut={handleSignOut}
               onUpdateSettings={updateSettings}
               onExportJson={exportDataJson}
               onImportJson={importDataJson}
               onResetDefaults={resetToDefaults}
             />
           )}
+
+          {view === 'admin' && auth.isAdmin && <AdminPanel />}
         </div>
       </main>
 
       {/* Mobile Floating Glass Bottom Dock */}
       <nav className="fixed inset-x-3 bottom-3 z-30 rounded-2xl border border-slate-200/90 bg-white/90 px-1.5 py-1.5 shadow-[0_12px_36px_rgba(0,0,0,0.18)] backdrop-blur-xl md:hidden dark:border-white/10 dark:bg-[#0d121c]/90 dark:shadow-[0_16px_40px_rgba(0,0,0,0.65)]">
         <div className="grid grid-cols-5 gap-1">
-          {NAV_ITEMS.map((item) => {
+          {BASE_NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive =
               view === item.id || (view === 'editor' && item.id === 'workouts');

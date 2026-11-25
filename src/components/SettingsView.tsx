@@ -1,20 +1,30 @@
 import { useRef, useState } from 'react';
 import {
+  Cloud,
+  CloudOff,
   Download,
   GitBranch,
+  Loader2,
+  LogOut,
   Moon,
   RotateCcw,
+  ShieldCheck,
   Smartphone,
   Sun,
   Upload,
+  User,
   Vibrate,
   Volume2,
 } from 'lucide-react';
-import { AppSettings } from '../types/workout';
+import type { SyncStatus } from '../hooks/useAppStore';
+import { AppSettings, UserProfile } from '../types/workout';
 import { ToggleSwitch } from './ToggleSwitch';
 
 interface SettingsViewProps {
   settings: AppSettings;
+  profile: UserProfile | null;
+  syncStatus: SyncStatus;
+  onSignOut: () => Promise<void>;
   onUpdateSettings: (patch: Partial<AppSettings>) => void;
   onExportJson: () => void;
   onImportJson: (
@@ -26,6 +36,9 @@ interface SettingsViewProps {
 
 export function SettingsView({
   settings,
+  profile,
+  syncStatus,
+  onSignOut,
   onUpdateSettings,
   onExportJson,
   onImportJson,
@@ -55,6 +68,68 @@ export function SettingsView({
           Personnalise l&apos;expérience et sauvegarde tes séances entre ton Mac et ton téléphone.
         </p>
       </div>
+
+      {/* Account & Cloud Sync */}
+      {profile && (
+        <section className="surface-card p-5 sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3.5">
+              <div
+                className={`font-display flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-base font-bold ${
+                  profile.role === 'admin'
+                    ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-slate-950'
+                    : 'bg-gradient-to-br from-cyan-400 to-emerald-400 text-slate-950'
+                }`}
+              >
+                {profile.role === 'admin' ? (
+                  <ShieldCheck className="h-6 w-6" />
+                ) : (
+                  <User className="h-6 w-6" />
+                )}
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-display text-lg font-bold">
+                    {profile.username}
+                  </span>
+                  {profile.role === 'admin' && (
+                    <span className="rounded-full border border-amber-500/30 bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-600 dark:text-amber-300">
+                      Admin
+                    </span>
+                  )}
+                </div>
+                <div className="mt-0.5 flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+                  {syncStatus === 'syncing' ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin text-cyan-500" />
+                      Synchronisation Supabase en cours...
+                    </>
+                  ) : syncStatus === 'error' ? (
+                    <>
+                      <CloudOff className="h-3.5 w-3.5 text-rose-500" />
+                      Mode hors-ligne (sauvegardé localement)
+                    </>
+                  ) : (
+                    <>
+                      <Cloud className="h-3.5 w-3.5 text-emerald-500" />
+                      Synchronisé automatiquement sur Supabase
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => void onSignOut()}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-2.5 text-sm font-bold text-rose-600 transition hover:bg-rose-500/20 dark:text-rose-300"
+            >
+              <LogOut className="h-4 w-4" />
+              Se déconnecter
+            </button>
+          </div>
+        </section>
+      )}
 
       {/* Preferences */}
       <section className="surface-card space-y-2 p-5 sm:p-6">

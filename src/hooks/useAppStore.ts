@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DEFAULT_APP_DATA } from '../data/defaults';
+import { supabase } from '../lib/supabase';
 import {
   AppData,
   AppSettings,
@@ -11,7 +12,11 @@ import {
 } from '../types/workout';
 import { generateId } from '../utils/format';
 
-const STORAGE_KEY = 'streetflow_app_data_v1';
+export type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error';
+
+function storageKeyForUser(userId: string | null): string {
+  return userId ? `streetflow_app_data_v1_${userId}` : 'streetflow_app_data_v1_guest';
+}
 
 function normalizeData(parsed: Partial<AppData>): AppData {
   const rawExercises = Array.isArray(parsed.exercises)
@@ -51,10 +56,10 @@ function normalizeData(parsed: Partial<AppData>): AppData {
   };
 }
 
-function loadInitialData(): AppData {
+function loadCachedData(userId: string | null): AppData {
   if (typeof window === 'undefined') return DEFAULT_APP_DATA;
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = window.localStorage.getItem(storageKeyForUser(userId));
     if (!raw) return DEFAULT_APP_DATA;
     const parsed = JSON.parse(raw) as Partial<AppData>;
     if (!parsed || typeof parsed !== 'object') return DEFAULT_APP_DATA;
@@ -64,17 +69,13 @@ function loadInitialData(): AppData {
   }
 }
 
-export function useAppStore() {
-  const [data, setData] = useState<AppData>(loadInitialData);
+export function useAppStore(userId: string | null) {
+  const [data, setData] = useState<AppData>(() => loadCachedData(userId));
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
+  const [cloudReadyUserId, setCloudReadyUserId] = useState<string | null>(null);
+  const skipNextCloudPushRef = useRef(false);
 
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    } catch {
-      // Ignore quota errors cleanly
-    }
-  }, [data]);
-
+  // Sync theme with <html> immediately (even on AuthScreen)
   useEffect(() => {
     const root = document.documentElement;
     root.classList.toggle('dark', data.settings.theme === 'dark');
@@ -86,6 +87,99 @@ export function useAppStore() {
       );
     }
   }, [data.settings.theme]);
+
+  // Load user's data from local cache + Supabase when userId changes
+  useEffect(() => {
+    if (!userId) {
+      setCloudReadyUserId(null);
+      setSyncStatus('idle');
+      return;
+    }
+
+    let cancelled = false;
+    const cached = loadCachedData(userId);
+    skipNextCloudPushRef.current = true;
+    setData(cached);
+    setCloudReadyUserId(null);
+    setSyncStatus('syncing');
+
+    const hydrateFromCloud = async () => {
+      const { data: row, error } = await supabase
+        .from('user_app_data')
+        .select('data')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (cancelled) return;
+
+      if (error) {
+        setSyncStatus('error');
+        setCloudReadyUserId(userId);
+        return;
+      }
+
+      if (row?.data && typeof row.data === 'object' && Object.keys(row.data).length > 0) {
+        const normalized = normalizeData(row.data as Partial<AppData>);
+        skipNextCloudPushRef.current = true;
+        setData(normalized);
+        try {
+          window.localStorage.setItem(
+            storageKeyForUser(userId),
+            JSON.stringify(normalized)
+          );
+        } catch {
+          // Ignore quota errors
+        }
+        setCloudReadyUserId(userId);
+        setSyncStatus('synced');
+      } else {
+        // Brand-new account: seed cloud row with default starter data
+        const { error: upsertErr } = await supabase.from('user_app_data').upsert({
+          user_id: userId,
+          data: cached,
+          updated_at: new Date().toISOString(),
+        });
+        if (cancelled) return;
+        setCloudReadyUserId(userId);
+        setSyncStatus(upsertErr ? 'error' : 'synced');
+      }
+    };
+
+    void hydrateFromCloud();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  // Persist to localStorage & debounced Supabase upsert when data changes
+  useEffect(() => {
+    if (!userId) return;
+
+    try {
+      window.localStorage.setItem(storageKeyForUser(userId), JSON.stringify(data));
+    } catch {
+      // Ignore quota errors
+    }
+
+    if (cloudReadyUserId !== userId) return;
+    if (skipNextCloudPushRef.current) {
+      skipNextCloudPushRef.current = false;
+      return;
+    }
+
+    setSyncStatus('syncing');
+    const timer = window.setTimeout(async () => {
+      const { error } = await supabase.from('user_app_data').upsert({
+        user_id: userId,
+        data,
+        updated_at: new Date().toISOString(),
+      });
+      setSyncStatus(error ? 'error' : 'synced');
+    }, 650);
+
+    return () => window.clearTimeout(timer);
+  }, [data, userId, cloudReadyUserId]);
 
   const exerciseMap = useMemo(
     () => new Map(data.exercises.map((ex) => [ex.id, ex])),
@@ -306,6 +400,7 @@ export function useAppStore() {
 
   return {
     data,
+    syncStatus,
     exerciseMap,
     updateSettings,
     saveWorkout,
