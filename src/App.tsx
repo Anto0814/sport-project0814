@@ -29,6 +29,7 @@ import { WorkoutList } from './components/WorkoutList';
 import { WorkoutPlayer } from './components/WorkoutPlayer';
 import { useAppStore } from './hooks/useAppStore';
 import { useAuth } from './hooks/useAuth';
+import { usePwaInstall } from './hooks/usePwaInstall';
 import { AppView, WorkoutTemplate } from './types/workout';
 
 const BASE_NAV_ITEMS: {
@@ -46,6 +47,7 @@ const BASE_NAV_ITEMS: {
 
 export function App() {
   const auth = useAuth();
+  const pwa = usePwaInstall();
   const {
     data,
     syncStatus,
@@ -121,7 +123,7 @@ export function App() {
   // Full-screen distraction-free workout player (Street Workout or Running)
   if (activeWorkout) {
     return (
-      <div className="min-h-screen px-4 py-4">
+      <div className="min-h-screen px-4 pb-4 pt-safe">
         {activeWorkout.discipline === 'running' ? (
           <RunningPlayer
             workout={activeWorkout}
@@ -328,7 +330,7 @@ export function App() {
       </aside>
 
       {/* Mobile Top Header */}
-      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200/70 bg-white/80 px-4 py-3 backdrop-blur-xl md:hidden dark:border-white/[0.06] dark:bg-[#070a0f]/80">
+      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200/70 bg-white/80 px-4 pb-3 pt-safe backdrop-blur-xl md:hidden dark:border-white/[0.06] dark:bg-[#070a0f]/80">
         <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400 to-emerald-400 text-slate-950 shadow-md shadow-cyan-500/20">
             <Zap className="h-4 w-4 fill-current" />
@@ -453,6 +455,7 @@ export function App() {
               settings={data.settings}
               profile={auth.profile}
               syncStatus={syncStatus}
+              pwa={pwa}
               onSignOut={handleSignOut}
               onUpdateSettings={updateSettings}
               onExportJson={exportDataJson}
