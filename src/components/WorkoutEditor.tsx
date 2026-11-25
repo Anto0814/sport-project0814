@@ -12,6 +12,8 @@ import {
   Plus,
   Save,
   Search,
+  Sparkles,
+  Tag,
   Trash2,
   X,
 } from 'lucide-react';
@@ -28,6 +30,7 @@ import {
   CATEGORY_META,
   estimateWorkoutDurationSec,
   formatDuration,
+  formatExerciseTitle,
   formatPace,
   formatSpeed,
   generateId,
@@ -91,12 +94,22 @@ export function WorkoutEditor({
 
   // Exercise picker state
   const [pickerOpenMobile, setPickerOpenMobile] = useState(false);
+  const [pickerTab, setPickerTab] = useState<'all' | 'custom'>('all');
   const [pickerQuery, setPickerQuery] = useState('');
   const [showQuickCreate, setShowQuickCreate] = useState(false);
   const [quickExName, setQuickExName] = useState('');
   const [quickExUnit, setQuickExUnit] = useState<ExerciseUnit>('reps');
   const [quickExCat, setQuickExCat] = useState<ExerciseCategory>('push');
+  const [quickExVariants, setQuickExVariants] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+
+  // Variant selection modal state (for adding a new exercise OR changing an existing item's variant)
+  const [variantModal, setVariantModal] = useState<{
+    exercise: Exercise;
+    editingItemId?: string;
+    currentVariant?: string;
+  } | null>(null);
+  const [customVariantInput, setCustomVariantInput] = useState('');
 
   const parsedRunDist = Math.max(0, Number(targetDistanceKm) || 0);
   const parsedRunDurSec = Math.max(
@@ -148,20 +161,32 @@ export function WorkoutEditor({
     [draftWorkout, exerciseMap]
   );
 
+  const streetExercises = useMemo(
+    () => exercises.filter((ex) => ex.discipline === 'street_workout'),
+    [exercises]
+  );
+
+  const customStreetCount = useMemo(
+    () => streetExercises.filter((ex) => ex.isCustom).length,
+    [streetExercises]
+  );
+
   const filteredPickerExercises = useMemo(() => {
     const q = pickerQuery.trim().toLowerCase();
-    return exercises.filter((ex) => {
-      if (ex.discipline !== 'street_workout') return false;
-      if (q && !ex.name.toLowerCase().includes(q)) return false;
-      return true;
+    return streetExercises.filter((ex) => {
+      if (pickerTab === 'custom' && !ex.isCustom) return false;
+      if (!q) return true;
+      if (ex.name.toLowerCase().includes(q)) return true;
+      return (ex.variants ?? []).some((v) => v.toLowerCase().includes(q));
     });
-  }, [exercises, pickerQuery]);
+  }, [streetExercises, pickerTab, pickerQuery]);
 
-  const addExerciseToWorkout = (ex: Exercise) => {
+  const addExerciseWithVariant = (ex: Exercise, variant?: string) => {
     const defaultTarget = ex.unit === 'seconds' ? 20 : 10;
     const newItem: WorkoutExercise = {
       id: generateId('wex'),
       exerciseId: ex.id,
+      variant: variant?.trim() || undefined,
       sets: [
         { id: generateId('s'), target: defaultTarget },
         { id: generateId('s'), target: defaultTarget },
@@ -172,25 +197,65 @@ export function WorkoutEditor({
     };
     setItems((prev) => [...prev, newItem]);
     setPickerOpenMobile(false);
+    setVariantModal(null);
+    setCustomVariantInput('');
     setErrorMsg('');
+  };
+
+  const openVariantPickerForAdd = (ex: Exercise) => {
+    setCustomVariantInput('');
+    setVariantModal({ exercise: ex });
+  };
+
+  const openVariantPickerForEdit = (item: WorkoutExercise, ex: Exercise) => {
+    setCustomVariantInput(
+      item.variant && !(ex.variants ?? []).includes(item.variant) ? item.variant : ''
+    );
+    setVariantModal({
+      exercise: ex,
+      editingItemId: item.id,
+      currentVariant: item.variant,
+    });
+  };
+
+  const confirmVariantChoice = (variant?: string) => {
+    if (!variantModal) return;
+    const cleanVariant = variant?.trim() || undefined;
+    if (variantModal.editingItemId) {
+      updateItem(variantModal.editingItemId, (cur) => ({
+        ...cur,
+        variant: cleanVariant,
+      }));
+      setVariantModal(null);
+      setCustomVariantInput('');
+    } else {
+      addExerciseWithVariant(variantModal.exercise, cleanVariant);
+    }
   };
 
   const handleQuickCreateExercise = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = quickExName.trim();
     if (!trimmed) return;
+    const variantsList = quickExVariants
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
     const created: Exercise = {
       id: generateId('ex'),
       name: trimmed,
       discipline: 'street_workout',
       unit: quickExUnit,
       category: quickExCat,
+      variants: variantsList.length > 0 ? variantsList : undefined,
       isCustom: true,
     };
     onSaveExercise(created);
-    addExerciseToWorkout(created);
     setQuickExName('');
+    setQuickExVariants('');
     setShowQuickCreate(false);
+    openVariantPickerForAdd(created);
   };
 
   const moveItem = (index: number, direction: -1 | 1) => {
@@ -298,6 +363,7 @@ export function WorkoutEditor({
         </button>
       </div>
 
+      {/* Quick create custom exercise */}
       {showQuickCreate && (
         <form
           onSubmit={handleQuickCreateExercise}
@@ -332,45 +398,102 @@ export function WorkoutEditor({
               ))}
             </select>
           </div>
+          <input
+            type="text"
+            value={quickExVariants}
+            onChange={(e) => setQuickExVariants(e.target.value)}
+            placeholder="Variantes (ex: Large, Serré) — optionnel"
+            className="input-field py-2 text-xs"
+          />
           <button type="submit" className="btn-primary w-full py-2 text-xs">
             Créer et ajouter
           </button>
         </form>
       )}
 
-      <div className="relative">
-        <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
+      {/* Picker category filter: All vs Custom */}
+      <div className="grid grid-cols-2 gap-1 rounded-xl border border-slate-200/80 bg-slate-100/80 p-1 dark:border-white/[0.07] dark:bg-[#070a0f]/80">
+        <button
+          type="button"
+          onClick={() => setPickerTab('all')}
+          className={`rounded-lg py-1.5 text-xs font-bold transition ${
+            pickerTab === 'all'
+              ? 'bg-gradient-to-r from-cyan-400 to-emerald-400 text-slate-950'
+              : 'text-slate-500 hover:text-slate-800 dark:text-slate-400'
+          }`}
+        >
+          Tous ({streetExercises.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setPickerTab('custom')}
+          className={`inline-flex items-center justify-center gap-1 rounded-lg py-1.5 text-xs font-bold transition ${
+            pickerTab === 'custom'
+              ? 'bg-gradient-to-r from-cyan-400 to-emerald-400 text-slate-950'
+              : 'text-slate-500 hover:text-slate-800 dark:text-slate-400'
+          }`}
+        >
+          <Sparkles className="h-3 w-3" />
+          Mes exos ({customStreetCount})
+        </button>
+      </div>
+
+      {/* Search bar (flex wrapper — zero icon overlap) */}
+      <div className="search-field py-2">
+        <Search className="h-4 w-4 shrink-0 text-slate-400" />
         <input
           type="search"
           value={pickerQuery}
           onChange={(e) => setPickerQuery(e.target.value)}
-          placeholder="Rechercher..."
-          className="input-field py-2 pl-9 text-xs"
+          placeholder="Rechercher un exo ou variante..."
+          className="search-field-input text-xs"
         />
       </div>
 
       <div className="max-h-96 space-y-1.5 overflow-y-auto pr-1">
-        {filteredPickerExercises.map((ex) => {
-          const meta = CATEGORY_META[ex.category];
-          return (
-            <button
-              key={ex.id}
-              type="button"
-              onClick={() => addExerciseToWorkout(ex)}
-              className="surface-inset flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left transition hover:border-cyan-400/50 hover:bg-cyan-500/10"
-            >
-              <div className="min-w-0">
-                <div className="truncate text-sm font-semibold">{ex.name}</div>
-                <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
-                  <span>{meta.label}</span>
-                  <span>·</span>
-                  <span>{ex.unit === 'seconds' ? 'Temps (s)' : 'Reps'}</span>
+        {filteredPickerExercises.length === 0 ? (
+          <div className="py-6 text-center text-xs text-slate-500">
+            {pickerTab === 'custom'
+              ? 'Tu n’as pas encore créé d’exercice personnalisé.'
+              : 'Aucun exercice trouvé.'}
+          </div>
+        ) : (
+          filteredPickerExercises.map((ex) => {
+            const meta = CATEGORY_META[ex.category];
+            const variantCount = ex.variants?.length ?? 0;
+            return (
+              <button
+                key={ex.id}
+                type="button"
+                onClick={() => openVariantPickerForAdd(ex)}
+                className="surface-inset flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left transition hover:border-cyan-400/50 hover:bg-cyan-500/10"
+              >
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="truncate text-sm font-bold">{ex.name}</span>
+                    {ex.isCustom && (
+                      <Sparkles className="h-3 w-3 shrink-0 text-amber-400" />
+                    )}
+                  </div>
+                  <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+                    <span>{meta.label}</span>
+                    <span>·</span>
+                    <span>{ex.unit === 'seconds' ? 'Temps (s)' : 'Reps'}</span>
+                    {variantCount > 0 && (
+                      <>
+                        <span>·</span>
+                        <span className="text-cyan-600 dark:text-cyan-400">
+                          {variantCount} variante{variantCount > 1 ? 's' : ''}
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <Plus className="h-4 w-4 shrink-0 text-cyan-500" />
-            </button>
-          );
-        })}
+                <Plus className="h-4 w-4 shrink-0 text-cyan-500" />
+              </button>
+            );
+          })
+        )}
       </div>
     </div>
   );
@@ -652,15 +775,31 @@ export function WorkoutEditor({
 
                     return (
                       <div key={item.id} className="surface-card p-4 sm:p-5">
+                        {/* Exercise Header */}
                         <div className="flex items-start justify-between gap-3">
-                          <div className="flex items-center gap-3">
+                          <div className="flex min-w-0 items-center gap-3">
                             <span className="font-display flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400/20 to-emerald-400/20 text-sm font-bold text-cyan-600 dark:text-cyan-300">
                               {idx + 1}
                             </span>
-                            <div>
-                              <h3 className="font-display text-base font-bold">
-                                {ex?.name ?? 'Exercice inconnu'}
-                              </h3>
+                            <div className="min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <h3 className="font-display text-base font-bold">
+                                  {formatExerciseTitle(
+                                    ex?.name ?? 'Exercice inconnu',
+                                    item.variant
+                                  )}
+                                </h3>
+                                {ex && (
+                                  <button
+                                    type="button"
+                                    onClick={() => openVariantPickerForEdit(item, ex)}
+                                    className="inline-flex items-center gap-1 rounded-lg border border-cyan-500/25 bg-cyan-500/10 px-2 py-0.5 text-[11px] font-bold text-cyan-600 transition hover:bg-cyan-500/20 dark:text-cyan-300"
+                                  >
+                                    <Tag className="h-3 w-3" />
+                                    {item.variant ? 'Changer variante' : '+ Variante'}
+                                  </button>
+                                )}
+                              </div>
                               <span className="text-xs text-slate-500 dark:text-slate-400">
                                 Objectif en{' '}
                                 {unit === 'seconds'
@@ -670,7 +809,7 @@ export function WorkoutEditor({
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-1">
+                          <div className="flex shrink-0 items-center gap-1">
                             <button
                               type="button"
                               disabled={idx === 0}
@@ -700,6 +839,7 @@ export function WorkoutEditor({
                           </div>
                         </div>
 
+                        {/* Sets count header */}
                         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 dark:border-white/[0.06]">
                           <div className="flex items-center gap-3">
                             <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -740,18 +880,20 @@ export function WorkoutEditor({
                           )}
                         </div>
 
-                        <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        {/* Spacious, overflow-proof single-column set rows */}
+                        <div className="mt-3 space-y-2">
                           {item.sets.map((set, setIdx) => (
                             <div
                               key={set.id}
-                              className="surface-inset flex items-center justify-between gap-2 px-3 py-2"
+                              className="surface-inset flex flex-wrap items-center justify-between gap-2.5 px-3.5 py-2.5"
                             >
-                              <span className="text-xs font-bold text-slate-500">
+                              <span className="min-w-[64px] shrink-0 text-xs font-bold text-slate-600 dark:text-slate-300">
                                 Série {setIdx + 1}
                               </span>
 
-                              <div className="flex items-center gap-2">
-                                <div className="flex items-center gap-1">
+                              <div className="flex flex-wrap items-center gap-2.5">
+                                {/* Target stepper */}
+                                <div className="flex items-center gap-1.5">
                                   <button
                                     type="button"
                                     onClick={() =>
@@ -761,9 +903,10 @@ export function WorkoutEditor({
                                         set.target - (unit === 'seconds' ? 5 : 1)
                                       )
                                     }
-                                    className="btn-secondary h-7 w-7 rounded-lg text-xs"
+                                    className="btn-secondary h-8 w-8 rounded-lg text-sm"
+                                    aria-label="Diminuer"
                                   >
-                                    -
+                                    <Minus className="h-3.5 w-3.5" />
                                   </button>
                                   <input
                                     type="number"
@@ -777,7 +920,7 @@ export function WorkoutEditor({
                                         Number(e.target.value)
                                       )
                                     }
-                                    className="w-12 rounded-lg border border-slate-200 bg-white py-1 text-center text-sm font-bold tabular-nums outline-none focus:border-cyan-500 dark:border-white/10 dark:bg-[#0d121c]"
+                                    className="h-8 w-14 rounded-lg border border-slate-200 bg-white text-center text-sm font-bold tabular-nums outline-none focus:border-cyan-500 dark:border-white/10 dark:bg-[#0d121c]"
                                   />
                                   <button
                                     type="button"
@@ -788,35 +931,46 @@ export function WorkoutEditor({
                                         set.target + (unit === 'seconds' ? 5 : 1)
                                       )
                                     }
-                                    className="btn-secondary h-7 w-7 rounded-lg text-xs"
+                                    className="btn-secondary h-8 w-8 rounded-lg text-sm"
+                                    aria-label="Augmenter"
                                   >
-                                    +
+                                    <Plus className="h-3.5 w-3.5" />
                                   </button>
-                                  <span className="w-8 text-xs text-slate-500">
+                                  <span className="w-8 text-xs font-semibold text-slate-500">
                                     {unitLabel}
                                   </span>
                                 </div>
 
-                                <input
-                                  type="number"
-                                  min={0}
-                                  step={0.5}
-                                  placeholder="+kg"
-                                  value={set.weightKg ?? ''}
-                                  onChange={(e) =>
-                                    updateSetWeight(item.id, setIdx, e.target.value)
-                                  }
-                                  title="Lestage additionnel en kg (optionnel)"
-                                  className="w-14 rounded-lg border border-slate-200 bg-white px-1.5 py-1 text-center text-xs outline-none focus:border-cyan-500 dark:border-white/10 dark:bg-[#0d121c]"
-                                />
+                                {/* Optional added weight pill */}
+                                <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 dark:border-white/10 dark:bg-[#0d121c]">
+                                  <span className="text-[11px] font-bold text-slate-400">
+                                    +
+                                  </span>
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    step={0.5}
+                                    placeholder="0"
+                                    value={set.weightKg ?? ''}
+                                    onChange={(e) =>
+                                      updateSetWeight(item.id, setIdx, e.target.value)
+                                    }
+                                    title="Lestage additionnel en kg (optionnel)"
+                                    className="w-10 bg-transparent text-center text-xs font-bold tabular-nums outline-none placeholder:text-slate-400"
+                                  />
+                                  <span className="text-[11px] font-semibold text-slate-400">
+                                    kg
+                                  </span>
+                                </div>
                               </div>
                             </div>
                           ))}
                         </div>
 
-                        <div className="mt-4 grid grid-cols-1 gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2 dark:border-white/[0.06]">
+                        {/* Rest timers */}
+                        <div className="mt-4 grid grid-cols-1 gap-3 border-t border-slate-100 pt-4 xl:grid-cols-2 dark:border-white/[0.06]">
                           <div className="surface-inset p-3.5">
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between gap-2">
                               <span className="inline-flex items-center gap-1.5 text-xs font-bold text-cyan-600 dark:text-cyan-400">
                                 <Clock className="h-3.5 w-3.5" />
                                 Repos entre séries
@@ -883,7 +1037,7 @@ export function WorkoutEditor({
                               isLastExercise ? 'opacity-55' : ''
                             }`}
                           >
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between gap-2">
                               <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-600 dark:text-amber-400">
                                 <Clock className="h-3.5 w-3.5" />
                                 {isLastExercise
@@ -978,8 +1132,9 @@ export function WorkoutEditor({
         )}
       </div>
 
+      {/* Mobile slide-up exercise picker */}
       {discipline === 'street_workout' && pickerOpenMobile && (
-        <div className="fixed inset-0 z-50 flex items-end bg-black/75 backdrop-blur-sm lg:hidden">
+        <div className="fixed inset-0 z-40 flex items-end bg-black/75 backdrop-blur-sm lg:hidden">
           <div className="surface-card max-h-[85vh] w-full overflow-y-auto rounded-t-3xl p-5 pb-safe">
             <div className="mb-3 flex items-center justify-between">
               <span className="font-display text-base font-bold">
@@ -1002,6 +1157,116 @@ export function WorkoutEditor({
               <Check className="h-4 w-4" />
               Terminer
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Variant choice modal (for ALL exercises: sans précision, preset variant, or custom variant) */}
+      {variantModal && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/75 p-0 backdrop-blur-sm sm:items-center sm:p-4">
+          <div className="surface-card w-full max-w-md rounded-t-3xl p-5 pb-safe sm:rounded-3xl sm:p-6 animate-view-in">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400">
+                  {variantModal.editingItemId
+                    ? 'Modifier la variante'
+                    : 'Ajouter à la séance'}
+                </span>
+                <h3 className="font-display mt-0.5 text-xl font-bold">
+                  {variantModal.exercise.name}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setVariantModal(null)}
+                className="btn-secondary p-2"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-4">
+              {/* Option 1: Sans précision */}
+              <button
+                type="button"
+                onClick={() => confirmVariantChoice(undefined)}
+                className={`flex w-full items-center justify-between rounded-2xl border p-3.5 text-left transition ${
+                  !variantModal.currentVariant && variantModal.editingItemId
+                    ? 'border-cyan-400 bg-cyan-500/15'
+                    : 'border-cyan-500/35 bg-cyan-500/10 hover:bg-cyan-500/20'
+                }`}
+              >
+                <div>
+                  <div className="text-sm font-bold text-cyan-700 dark:text-cyan-300">
+                    {variantModal.exercise.name} (sans précision)
+                  </div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Ajouter directement l&apos;exercice générique
+                  </div>
+                </div>
+                <Plus className="h-4 w-4 shrink-0 text-cyan-500" />
+              </button>
+
+              {/* Option 2: Preset variants */}
+              {variantModal.exercise.variants &&
+                variantModal.exercise.variants.length > 0 && (
+                  <div>
+                    <div className="mb-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                      Ou choisir un type particulier
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {variantModal.exercise.variants.map((v) => {
+                        const isSelected = variantModal.currentVariant === v;
+                        return (
+                          <button
+                            key={v}
+                            type="button"
+                            onClick={() => confirmVariantChoice(v)}
+                            className={`rounded-xl border px-3 py-2 text-xs font-bold transition ${
+                              isSelected
+                                ? 'border-emerald-400 bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
+                                : 'border-slate-200 bg-slate-50 hover:border-cyan-400 hover:bg-cyan-500/10 dark:border-white/10 dark:bg-white/[0.04]'
+                            }`}
+                          >
+                            {v}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+              {/* Option 3: Custom free-text variant */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (customVariantInput.trim()) {
+                    confirmVariantChoice(customVariantInput.trim());
+                  }
+                }}
+                className="border-t border-slate-100 pt-4 dark:border-white/[0.06]"
+              >
+                <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                  Ou saisir une précision libre
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={customVariantInput}
+                    onChange={(e) => setCustomVariantInput(e.target.value)}
+                    placeholder="Ex : Prise neutre, Élastique rouge..."
+                    className="input-field py-2 text-xs"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!customVariantInput.trim()}
+                    className="btn-primary shrink-0 px-4 py-2 text-xs"
+                  >
+                    Valider
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}

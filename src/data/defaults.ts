@@ -1,32 +1,187 @@
 import { AppData, Exercise, WorkoutTemplate } from '../types/workout';
 
 export const DEFAULT_EXERCISES: Exercise[] = [
-  { id: 'ex_pullups', name: 'Tractions pronation', discipline: 'street_workout', unit: 'reps', category: 'pull', notes: 'Prise largeur épaules, descente contrôlée' },
-  { id: 'ex_chinups', name: 'Tractions supination', discipline: 'street_workout', unit: 'reps', category: 'pull', notes: 'Menton au-dessus de la barre' },
-  { id: 'ex_aus_rows', name: 'Tractions australiennes', discipline: 'street_workout', unit: 'reps', category: 'pull', notes: 'Corps gainé, poitrine à la barre' },
-  { id: 'ex_muscleup', name: 'Muscle-up', discipline: 'street_workout', unit: 'reps', category: 'skill', notes: 'Tirage explosif et transition propre' },
-  { id: 'ex_dips', name: 'Dips aux barres parallèles', discipline: 'street_workout', unit: 'reps', category: 'push', notes: 'Coudes verrouillés en haut, 90° en bas' },
-  { id: 'ex_pushups', name: 'Pompes classiques', discipline: 'street_workout', unit: 'reps', category: 'push' },
-  { id: 'ex_decline_pushups', name: 'Pompes déclinées', discipline: 'street_workout', unit: 'reps', category: 'push', notes: 'Pieds surélevés sur un banc ou muret' },
-  { id: 'ex_pike_pushups', name: 'Pike Push-ups', discipline: 'street_workout', unit: 'reps', category: 'push', notes: 'Focus épaules, tête en avant des mains' },
-  { id: 'ex_diamond_pushups', name: 'Pompes diamants', discipline: 'street_workout', unit: 'reps', category: 'push' },
-  { id: 'ex_lsit', name: 'L-Sit (équerre)', discipline: 'street_workout', unit: 'seconds', category: 'skill', notes: 'Jambes tendues, épaules abaissées' },
-  { id: 'ex_tuck_fl', name: 'Tuck Front Lever', discipline: 'street_workout', unit: 'seconds', category: 'skill', notes: 'Bras tendus, omoplates serrées' },
-  { id: 'ex_handstand', name: 'Handstand (équilibre mur)', discipline: 'street_workout', unit: 'seconds', category: 'skill' },
-  { id: 'ex_leg_raises', name: 'Relevés de jambes à la barre', discipline: 'street_workout', unit: 'reps', category: 'core', notes: 'Sans élan, contrôle à la descente' },
-  { id: 'ex_plank', name: 'Gainage planche', discipline: 'street_workout', unit: 'seconds', category: 'core' },
-  { id: 'ex_hollow', name: 'Hollow Body Hold', discipline: 'street_workout', unit: 'seconds', category: 'core', notes: 'Bas du dos collé au sol' },
-  { id: 'ex_pistol', name: 'Pistol Squats', discipline: 'street_workout', unit: 'reps', category: 'legs', notes: 'Répétitions totales (ou par jambe)' },
-  { id: 'ex_jump_squats', name: 'Squats sautés', discipline: 'street_workout', unit: 'reps', category: 'legs' },
-  { id: 'ex_burpees', name: 'Burpees', discipline: 'street_workout', unit: 'reps', category: 'full' },
+  {
+    id: 'ex_pullups',
+    name: 'Tractions',
+    discipline: 'street_workout',
+    unit: 'reps',
+    category: 'pull',
+    variants: [
+      'Pronation',
+      'Supination',
+      'Prise large',
+      'Prise serrée',
+      'Australiennes',
+      'Explosives',
+      'Archer',
+    ],
+    notes: 'Contrôle complet sur la descente, épaules engagées',
+  },
+  {
+    id: 'ex_dips',
+    name: 'Dips',
+    discipline: 'street_workout',
+    unit: 'reps',
+    category: 'push',
+    variants: [
+      'Barres parallèles',
+      'Barre droite',
+      'Anneaux',
+      'Coréens',
+      'Lestés',
+    ],
+    notes: 'Coudes verrouillés en haut, amplitude complète en bas',
+  },
+  {
+    id: 'ex_pushups',
+    name: 'Pompes',
+    discipline: 'street_workout',
+    unit: 'reps',
+    category: 'push',
+    variants: [
+      'Classiques',
+      'Déclinées',
+      'Inclinées',
+      'Diamants',
+      'Pike Push-ups',
+      'Explosives / Claquées',
+      'Archer',
+      'Pseudo Planche',
+    ],
+  },
+  {
+    id: 'ex_muscleup',
+    name: 'Muscle-up',
+    discipline: 'street_workout',
+    unit: 'reps',
+    category: 'skill',
+    variants: ['Barre fixe', 'Strict', 'Anneaux', 'Avec élastique'],
+    notes: 'Tirage explosif et transition fluide au-dessus de la barre',
+  },
+  {
+    id: 'ex_lsit',
+    name: 'L-Sit (Équerre)',
+    discipline: 'street_workout',
+    unit: 'seconds',
+    category: 'skill',
+    variants: ['Sol', 'Parallettes', 'Barres parallèles', 'Tuck L-Sit', 'V-Sit'],
+    notes: 'Jambes tendues, épaules abaissées',
+  },
+  {
+    id: 'ex_tuck_fl',
+    name: 'Front Lever',
+    discipline: 'street_workout',
+    unit: 'seconds',
+    category: 'skill',
+    variants: ['Tuck', 'Advanced Tuck', 'One Leg', 'Straddle', 'Full'],
+    notes: 'Bras tendus, omoplates rétractées',
+  },
+  {
+    id: 'ex_planche',
+    name: 'Planche',
+    discipline: 'street_workout',
+    unit: 'seconds',
+    category: 'skill',
+    variants: ['Planche Lean', 'Tuck Planche', 'Advanced Tuck', 'Straddle', 'Full'],
+    notes: 'Protraction des épaules et bras verrouillés',
+  },
+  {
+    id: 'ex_handstand',
+    name: 'Handstand (Équilibre)',
+    discipline: 'street_workout',
+    unit: 'seconds',
+    category: 'skill',
+    variants: ['Face au mur', 'Dos au mur', 'Libre', 'HSPU (Pompes poirier)'],
+  },
+  {
+    id: 'ex_leg_raises',
+    name: 'Relevés de jambes',
+    discipline: 'street_workout',
+    unit: 'reps',
+    category: 'core',
+    variants: ['À la barre (Toes to Bar)', 'Genoux poitrine', 'Barres parallèles', 'Au sol'],
+    notes: 'Sans élan, contrôle à la descente',
+  },
+  {
+    id: 'ex_plank',
+    name: 'Gainage',
+    discipline: 'street_workout',
+    unit: 'seconds',
+    category: 'core',
+    variants: ['Planche classique', 'Hollow Body Hold', 'Gainage latéral', 'Dragon Flag'],
+  },
+  {
+    id: 'ex_squats',
+    name: 'Squats',
+    discipline: 'street_workout',
+    unit: 'reps',
+    category: 'legs',
+    variants: ['Classiques', 'Pistol Squats', 'Squats sautés', 'Squats bulgares', 'Shrimp Squats'],
+  },
+  {
+    id: 'ex_burpees',
+    name: 'Burpees',
+    discipline: 'street_workout',
+    unit: 'reps',
+    category: 'full',
+    variants: ['Classiques', 'Avec pompe', 'Avec traction', 'Sans saut'],
+  },
 
-  // Running exercises / session archetypes
-  { id: 'ex_run_endurance', name: 'Footing Endurance (EF)', discipline: 'running', unit: 'seconds', category: 'endurance', notes: 'Allure confortable, aisance respiratoire' },
-  { id: 'ex_run_intervals', name: 'Fractionné 30/30', discipline: 'running', unit: 'seconds', category: 'intervals', notes: '30s rapide / 30s trot léger après échauffement' },
-  { id: 'ex_run_tempo', name: 'Sortie Seuil / Tempo', discipline: 'running', unit: 'seconds', category: 'tempo', notes: 'Allure soutenue mais contrôlée' },
-  { id: 'ex_run_trail', name: 'Sortie Trail / Côtes', discipline: 'running', unit: 'seconds', category: 'trail', notes: 'Travail de dénivelé et appuis' },
-  { id: 'ex_run_recovery', name: 'Footing Récupération', discipline: 'running', unit: 'seconds', category: 'recovery', notes: 'Allure très souple pour récupérer' },
+  // Running archetypes
+  {
+    id: 'ex_run_endurance',
+    name: 'Footing / Endurance',
+    discipline: 'running',
+    unit: 'seconds',
+    category: 'endurance',
+    variants: ['Endurance fondamentale', 'Sortie longue', 'Footing récupération'],
+    notes: 'Allure confortable, aisance respiratoire',
+  },
+  {
+    id: 'ex_run_intervals',
+    name: 'Fractionné',
+    discipline: 'running',
+    unit: 'seconds',
+    category: 'intervals',
+    variants: ['30/30', '400m', '1000m', 'Pyramide'],
+    notes: 'Échauffement obligatoire avant les répétitions rapides',
+  },
+  {
+    id: 'ex_run_tempo',
+    name: 'Seuil / Tempo',
+    discipline: 'running',
+    unit: 'seconds',
+    category: 'tempo',
+    variants: ['Allure seuil', 'Allure 10 km', 'Allure semi-marathon'],
+    notes: 'Allure soutenue mais contrôlée',
+  },
+  {
+    id: 'ex_run_trail',
+    name: 'Trail / Côtes',
+    discipline: 'running',
+    unit: 'seconds',
+    category: 'trail',
+    variants: ['Côtes courtes', 'Côtes longues', 'Sortie trail'],
+    notes: 'Travail de dénivelé et appuis',
+  },
 ];
+
+/**
+ * Maps legacy split exercise IDs to the unified base exercise + variant
+ * so existing saved workouts migrate seamlessly.
+ */
+export const LEGACY_EXERCISE_MAP: Record<string, { exerciseId: string; variant?: string }> = {
+  ex_chinups: { exerciseId: 'ex_pullups', variant: 'Supination' },
+  ex_aus_rows: { exerciseId: 'ex_pullups', variant: 'Australiennes' },
+  ex_decline_pushups: { exerciseId: 'ex_pushups', variant: 'Déclinées' },
+  ex_pike_pushups: { exerciseId: 'ex_pushups', variant: 'Pike Push-ups' },
+  ex_diamond_pushups: { exerciseId: 'ex_pushups', variant: 'Diamants' },
+  ex_hollow: { exerciseId: 'ex_plank', variant: 'Hollow Body Hold' },
+  ex_pistol: { exerciseId: 'ex_squats', variant: 'Pistol Squats' },
+  ex_jump_squats: { exerciseId: 'ex_squats', variant: 'Squats sautés' },
+  ex_run_recovery: { exerciseId: 'ex_run_endurance', variant: 'Footing récupération' },
+};
 
 const nowIso = new Date().toISOString();
 
@@ -35,7 +190,7 @@ export const DEFAULT_WORKOUTS: WorkoutTemplate[] = [
     id: 'wk_push_street',
     name: 'Push & Dips Street',
     discipline: 'street_workout',
-    description: 'Séance poussée haut du corps : force dips + pompes + gainage.',
+    description: 'Séance poussée haut du corps : dips, pompes déclinées, pike et gainage.',
     accent: 'amber',
     createdAt: nowIso,
     updatedAt: nowIso,
@@ -43,6 +198,7 @@ export const DEFAULT_WORKOUTS: WorkoutTemplate[] = [
       {
         id: 'wex_1',
         exerciseId: 'ex_dips',
+        variant: 'Barres parallèles',
         sets: [
           { id: 's1', target: 10 },
           { id: 's2', target: 10 },
@@ -55,7 +211,8 @@ export const DEFAULT_WORKOUTS: WorkoutTemplate[] = [
       },
       {
         id: 'wex_2',
-        exerciseId: 'ex_decline_pushups',
+        exerciseId: 'ex_pushups',
+        variant: 'Déclinées',
         sets: [
           { id: 's5', target: 12 },
           { id: 's6', target: 12 },
@@ -66,7 +223,8 @@ export const DEFAULT_WORKOUTS: WorkoutTemplate[] = [
       },
       {
         id: 'wex_3',
-        exerciseId: 'ex_pike_pushups',
+        exerciseId: 'ex_pushups',
+        variant: 'Pike Push-ups',
         sets: [
           { id: 's8', target: 8 },
           { id: 's9', target: 8 },
@@ -78,6 +236,7 @@ export const DEFAULT_WORKOUTS: WorkoutTemplate[] = [
       {
         id: 'wex_4',
         exerciseId: 'ex_plank',
+        variant: 'Planche classique',
         sets: [
           { id: 's11', target: 45 },
           { id: 's12', target: 45 },
@@ -100,6 +259,7 @@ export const DEFAULT_WORKOUTS: WorkoutTemplate[] = [
       {
         id: 'wex_5',
         exerciseId: 'ex_pullups',
+        variant: 'Pronation',
         sets: [
           { id: 's14', target: 10 },
           { id: 's15', target: 8 },
@@ -112,6 +272,7 @@ export const DEFAULT_WORKOUTS: WorkoutTemplate[] = [
       {
         id: 'wex_6',
         exerciseId: 'ex_lsit',
+        variant: 'Barres parallèles',
         sets: [
           { id: 's18', target: 20 },
           { id: 's19', target: 20 },
@@ -123,7 +284,8 @@ export const DEFAULT_WORKOUTS: WorkoutTemplate[] = [
       },
       {
         id: 'wex_7',
-        exerciseId: 'ex_aus_rows',
+        exerciseId: 'ex_pullups',
+        variant: 'Australiennes',
         sets: [
           { id: 's22', target: 12 },
           { id: 's23', target: 12 },
@@ -135,6 +297,7 @@ export const DEFAULT_WORKOUTS: WorkoutTemplate[] = [
       {
         id: 'wex_8',
         exerciseId: 'ex_leg_raises',
+        variant: 'À la barre (Toes to Bar)',
         sets: [
           { id: 's25', target: 10 },
           { id: 's26', target: 10 },
@@ -164,7 +327,7 @@ export const DEFAULT_WORKOUTS: WorkoutTemplate[] = [
 ];
 
 export const DEFAULT_APP_DATA: AppData = {
-  version: 1,
+  version: 2,
   settings: {
     theme: 'dark',
     soundEnabled: true,

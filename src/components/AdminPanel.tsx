@@ -111,14 +111,14 @@ export function AdminPanel() {
       </div>
 
       {/* Search */}
-      <div className="relative max-w-md">
-        <Search className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-slate-400" />
+      <div className="search-field max-w-md">
+        <Search className="h-4 w-4 shrink-0 text-slate-400" />
         <input
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Rechercher un pseudo..."
-          className="input-field pl-10"
+          className="search-field-input"
         />
       </div>
 

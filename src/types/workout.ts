@@ -12,6 +12,7 @@ export interface Exercise {
   discipline: Discipline;
   unit: ExerciseUnit;
   category: ExerciseCategory;
+  variants?: string[];
   notes?: string;
   isCustom?: boolean;
 }
@@ -25,6 +26,7 @@ export interface WorkoutSet {
 export interface WorkoutExercise {
   id: string;
   exerciseId: string;
+  variant?: string;
   sets: WorkoutSet[];
   restBetweenSetsSec: number;
   restAfterExerciseSec: number;

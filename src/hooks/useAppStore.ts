@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { DEFAULT_APP_DATA } from '../data/defaults';
+import {
+  DEFAULT_APP_DATA,
+  DEFAULT_EXERCISES,
+  LEGACY_EXERCISE_MAP,
+} from '../data/defaults';
 import { supabase } from '../lib/supabase';
 import {
   AppData,
@@ -18,20 +22,66 @@ function storageKeyForUser(userId: string | null): string {
   return userId ? `streetflow_app_data_v1_${userId}` : 'streetflow_app_data_v1_guest';
 }
 
+function migrateWorkoutItems(workout: WorkoutTemplate): WorkoutTemplate {
+  return {
+    ...workout,
+    discipline: workout.discipline ?? 'street_workout',
+    exercises: (workout.exercises ?? []).map((item) => {
+      const mapped = LEGACY_EXERCISE_MAP[item.exerciseId];
+      if (!mapped) return item;
+      return {
+        ...item,
+        exerciseId: mapped.exerciseId,
+        variant: item.variant ?? mapped.variant,
+      };
+    }),
+  };
+}
+
 function normalizeData(parsed: Partial<AppData>): AppData {
-  const rawExercises = Array.isArray(parsed.exercises)
-    ? parsed.exercises.map((e) => ({
+  const needsCatalogUpgrade = (parsed.version ?? 1) < 2;
+  let rawExercises: Exercise[];
+
+  if (!Array.isArray(parsed.exercises)) {
+    rawExercises = DEFAULT_EXERCISES;
+  } else if (needsCatalogUpgrade) {
+    // Keep all user-created exercises and upgrade built-ins to grouped base exercises + variants
+    const customExercises = parsed.exercises
+      .filter((e) => e.isCustom)
+      .map((e) => ({
         ...e,
         discipline: e.discipline ?? 'street_workout',
-      }))
-    : DEFAULT_APP_DATA.exercises;
+      }));
+    rawExercises = [...DEFAULT_EXERCISES, ...customExercises];
+  } else {
+    const defaultById = new Map(DEFAULT_EXERCISES.map((d) => [d.id, d]));
+    rawExercises = parsed.exercises.map((e) => ({
+      ...e,
+      discipline: e.discipline ?? 'street_workout',
+      variants: e.variants ?? defaultById.get(e.id)?.variants,
+    }));
+  }
 
   const rawWorkouts = Array.isArray(parsed.workouts)
-    ? parsed.workouts.map((w) => ({
-        ...w,
-        discipline: w.discipline ?? 'street_workout',
-      }))
+    ? parsed.workouts.map(migrateWorkoutItems)
     : DEFAULT_APP_DATA.workouts;
+
+  const rawPlanned = Array.isArray(parsed.plannedWorkouts)
+    ? parsed.plannedWorkouts.map((p) => ({
+        ...p,
+        workout: p.workout ? migrateWorkoutItems(p.workout) : undefined,
+      }))
+    : [];
+
+  const rawPrograms = Array.isArray(parsed.programs)
+    ? parsed.programs.map((prog) => ({
+        ...prog,
+        slots: prog.slots.map((slot) => ({
+          ...slot,
+          workout: slot.workout ? migrateWorkoutItems(slot.workout) : null,
+        })),
+      }))
+    : [];
 
   const rawHistory = Array.isArray(parsed.history)
     ? parsed.history.map((h) => ({
@@ -41,7 +91,7 @@ function normalizeData(parsed: Partial<AppData>): AppData {
     : [];
 
   return {
-    version: 1,
+    version: 2,
     settings: {
       ...DEFAULT_APP_DATA.settings,
       ...(parsed.settings ?? {}),
@@ -49,10 +99,8 @@ function normalizeData(parsed: Partial<AppData>): AppData {
     exercises: rawExercises,
     workouts: rawWorkouts,
     history: rawHistory,
-    plannedWorkouts: Array.isArray(parsed.plannedWorkouts)
-      ? parsed.plannedWorkouts
-      : [],
-    programs: Array.isArray(parsed.programs) ? parsed.programs : [],
+    plannedWorkouts: rawPlanned,
+    programs: rawPrograms,
   };
 }
 

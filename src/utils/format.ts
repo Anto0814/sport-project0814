@@ -102,6 +102,10 @@ export function estimateWorkoutDurationSec(
   return total;
 }
 
+export function formatExerciseTitle(name: string, variant?: string): string {
+  return variant ? `${name} · ${variant}` : name;
+}
+
 export function summarizeSets(sets: { target: number }[], unit: 'reps' | 'seconds'): string {
   if (sets.length === 0) return '0 série';
   const suffix = unit === 'seconds' ? 's' : ' reps';

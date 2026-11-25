@@ -27,6 +27,7 @@ import {
   DISCIPLINE_META,
   estimateWorkoutDurationSec,
   formatDuration,
+  formatExerciseTitle,
   formatPace,
   summarizeSets,
   WORKOUT_ACCENTS,
@@ -179,14 +180,14 @@ export function WorkoutList({
         </div>
 
         {workouts.length > 0 && (
-          <div className="relative w-full sm:max-w-xs">
-            <Search className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <div className="search-field w-full sm:max-w-xs">
+            <Search className="h-4 w-4 shrink-0 text-slate-400" />
             <input
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Rechercher une séance ou un exo..."
-              className="input-field pl-10"
+              className="search-field-input"
             />
           </div>
         )}
@@ -332,7 +333,10 @@ export function WorkoutList({
                               className="flex items-center justify-between gap-2 text-xs"
                             >
                               <span className="truncate font-semibold text-slate-800 dark:text-slate-200">
-                                {ex?.name ?? 'Exercice supprimé'}
+                                {formatExerciseTitle(
+                                  ex?.name ?? 'Exercice supprimé',
+                                  item.variant
+                                )}
                               </span>
                               <span className="shrink-0 rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600 tabular-nums dark:bg-white/[0.05] dark:text-slate-400">
                                 {summarizeSets(item.sets, unit)} ·{' '}

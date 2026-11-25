@@ -27,7 +27,13 @@ import {
   primeAudio,
   triggerVibration,
 } from '../utils/feedback';
-import { CATEGORY_META, formatClock, formatDuration, generateId } from '../utils/format';
+import {
+  CATEGORY_META,
+  formatClock,
+  formatDuration,
+  formatExerciseTitle,
+  generateId,
+} from '../utils/format';
 
 interface WorkoutPlayerProps {
   workout: WorkoutTemplate;
@@ -70,7 +76,7 @@ export function WorkoutPlayer({
       const ex = exerciseMap.get(item.exerciseId);
       return {
         exerciseId: item.exerciseId,
-        exerciseName: ex?.name ?? 'Exercice',
+        exerciseName: formatExerciseTitle(ex?.name ?? 'Exercice', item.variant),
         unit: ex?.unit ?? 'reps',
         sets: item.sets.map((s, idx) => ({
           setIndex: idx,
@@ -210,7 +216,7 @@ export function WorkoutPlayer({
   const nextExercisePreview = useMemo(() => {
     if (restKind === 'between_sets') {
       return {
-        name: currentExercise?.name ?? '',
+        name: formatExerciseTitle(currentExercise?.name ?? '', currentItem?.variant),
         setNumber: setIndex + 1,
         totalSets: currentItem?.sets.length ?? 0,
         target: currentSet?.target ?? 0,
@@ -220,7 +226,7 @@ export function WorkoutPlayer({
     const nextItem = workout.exercises[exIndex];
     const nextEx = nextItem ? exerciseMap.get(nextItem.exerciseId) : undefined;
     return {
-      name: nextEx?.name ?? '',
+      name: formatExerciseTitle(nextEx?.name ?? '', nextItem?.variant),
       setNumber: 1,
       totalSets: nextItem?.sets.length ?? 0,
       target: nextItem?.sets[0]?.target ?? 0,
@@ -607,7 +613,10 @@ export function WorkoutPlayer({
                     )}
                   </div>
                   <h2 className="font-display mt-1.5 text-2xl font-bold sm:text-3xl">
-                    {currentExercise?.name ?? 'Exercice'}
+                    {formatExerciseTitle(
+                      currentExercise?.name ?? 'Exercice',
+                      currentItem.variant
+                    )}
                   </h2>
                 </div>
                 {currentSet.weightKg ? (
@@ -763,7 +772,10 @@ export function WorkoutPlayer({
                   <span>
                     Dernière série · Repos avant{' '}
                     <strong className="text-slate-800 dark:text-slate-200">
-                      {exerciseMap.get(workout.exercises[exIndex + 1].exerciseId)?.name}
+                      {formatExerciseTitle(
+                        exerciseMap.get(workout.exercises[exIndex + 1].exerciseId)?.name ?? '',
+                        workout.exercises[exIndex + 1].variant
+                      )}
                     </strong>{' '}
                     :{' '}
                     <strong className="text-amber-600 dark:text-amber-400">
@@ -823,7 +835,7 @@ export function WorkoutPlayer({
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-bold">
-                        {eIdx + 1}. {ex?.name ?? 'Exercice'}
+                        {eIdx + 1}. {formatExerciseTitle(ex?.name ?? 'Exercice', item.variant)}
                       </span>
                       <span className="text-xs text-slate-500">
                         Repos : {formatDuration(item.restBetweenSetsSec)}
